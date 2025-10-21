@@ -1,0 +1,213 @@
+.vehicle-history-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.vehicle-history-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  
+  h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #f8f9fa;
+      color: #495057;
+    }
+  }
+}
+
+.modal-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.loading, .error, .no-entries {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+  
+  p {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.error {
+  color: #dc3545;
+}
+
+.entries-summary {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+  
+  p {
+    margin: 0;
+    color: #495057;
+    
+    strong {
+      color: #007bff;
+    }
+  }
+}
+
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.entry-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+  
+  &.entry {
+    border-left: 4px solid #28a745;
+  }
+  
+  &.exit {
+    border-left: 4px solid #ffc107;
+  }
+}
+
+.entry-action {
+  margin-right: 16px;
+  
+  .action-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    
+    &.entry {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    &.exit {
+      background: #fff3cd;
+      color: #856404;
+    }
+  }
+}
+
+.entry-details {
+  flex: 1;
+  
+  .entry-time {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    font-size: 1rem;
+  }
+  
+  .entry-officer {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    
+    &.btn-secondary {
+      background: #6c757d;
+      color: white;
+      
+      &:hover {
+        background: #5a6268;
+      }
+    }
+  }
+}
+
+// Адаптивність для мобільних пристроїв
+@media (max-width: 768px) {
+  .vehicle-history-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .entry-item {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .entry-action {
+      margin-right: 0;
+      margin-bottom: 8px;
+    }
+  }
+}
