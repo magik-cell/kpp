@@ -49,7 +49,6 @@ class ApiService {
       (error: { response: { status: number; }; }) => {
         // Не перенаправляємо автоматично при 401 для login форми
         // Дозволяємо LoginPage обробити помилку самостійно
-        console.log('API interceptor caught error:', error.response?.status);
         return Promise.reject(error);
       }
     );
@@ -101,18 +100,12 @@ class ApiService {
   }
 
   async getEntryHistory(licensePlate: string, params?: { page?: number; limit?: number }): Promise<PaginatedResponse<EntryRecord>> {
-    console.log('ApiService: getEntryHistory called with:', licensePlate, params);
     try {
       const url = `/entries/history/${encodeURIComponent(licensePlate)}`;
-      console.log('ApiService: Making request to:', url);
-      
       const response = await this.api.get(url, { params });
-      console.log('ApiService: Raw response:', response);
-      console.log('ApiService: Response data:', response.data);
-      console.log('ApiService: Response status:', response.status);
       
       // Сервер повертає просто масив записів, не пагінований відповідь
-      const result = {
+      return {
         data: response.data || [],
         pagination: {
           currentPage: 1,
@@ -122,11 +115,8 @@ class ApiService {
           hasPrev: false
         }
       };
-      
-      console.log('ApiService: Returning result:', result);
-      return result;
     } catch (error) {
-      console.error('ApiService: Error in getEntryHistory:', error);
+      console.error('Error fetching entry history:', error);
       throw error;
     }
   }

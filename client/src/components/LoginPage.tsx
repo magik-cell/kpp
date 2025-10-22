@@ -13,8 +13,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({ username: false, password: false });
 
-  // Debug логування перед рендером
-  console.log('LoginPage render - current error:', error, 'truthy:', !!error);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,12 +57,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
 
     try {
-      console.log('Making login request...');
       const response = await apiService.login({ 
         username: username.trim(), 
         password: password 
       });
-      console.log('Login request successful:', response);
       onLogin(response.user, response.token);
     } catch (err: any) {
       console.error('Login failed:', err);
@@ -82,16 +79,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         errorMessage = err.response.data.error;
       }
       
-      console.log('About to set error:', errorMessage);
-      console.log('Error state before setError:', error);
-      
-      // Використовуємо setTimeout для затримки встановлення помилки
-      setTimeout(() => {
-        console.log('Setting error after timeout:', errorMessage);
-        setError(errorMessage);
-      }, 100);
-      
-      console.log('setError scheduled with:', errorMessage);
+      setError(errorMessage);
       
       if (shouldHighlightFields) {
         setFieldErrors({ username: true, password: true });

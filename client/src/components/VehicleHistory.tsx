@@ -15,28 +15,20 @@ const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose })
   const [error, setError] = useState('');
 
   useEffect(() => {
-    console.log('VehicleHistory: useEffect triggered for plateNumber:', plateNumber);
     const fetchHistory = async () => {
       try {
         setLoading(true);
         setError('');
-        console.log('VehicleHistory: Fetching history for:', plateNumber);
         
         const response = await apiService.getEntryHistory(plateNumber);
-        console.log('VehicleHistory: Full response:', response);
-        console.log('VehicleHistory: Response data:', response.data);
-        console.log('VehicleHistory: Response data type:', typeof response.data);
-        console.log('VehicleHistory: Response data is array:', Array.isArray(response.data));
         
         if (response && response.data && Array.isArray(response.data)) {
           setEntries(response.data);
-          console.log('VehicleHistory: Set entries:', response.data);
         } else {
-          console.warn('VehicleHistory: Invalid response structure:', response);
           setEntries([]);
         }
       } catch (err: any) {
-        console.error('VehicleHistory: Error fetching history:', err);
+        console.error('Error fetching vehicle history:', err);
         setError('Помилка завантаження історії');
         setEntries([]);
       } finally {
@@ -47,7 +39,6 @@ const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose })
     if (plateNumber) {
       fetchHistory();
     } else {
-      console.warn('VehicleHistory: No plateNumber provided');
       setLoading(false);
     }
   }, [plateNumber]);
@@ -85,7 +76,6 @@ const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose })
               <div className="entries-list">
                 {entries && Array.isArray(entries) && entries.map((entry, index) => {
                   if (!entry) {
-                    console.warn('VehicleHistory: Found null/undefined entry at index:', index);
                     return null;
                   }
                   

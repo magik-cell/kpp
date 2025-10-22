@@ -314,21 +314,14 @@ router.put('/:id', authenticateToken, requireRole(['unit_officer']), async (req:
 router.delete('/:id', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    console.log('Delete vehicle request for ID:', id);
 
     const vehicle = await Vehicle.findById(id);
     if (!vehicle) {
-      console.log('Vehicle not found for ID:', id);
       return res.status(404).json({ error: 'Автомобіль не знайдено' });
     }
-
-    console.log('Found vehicle:', vehicle.licensePlate, 'Current isActive:', vehicle.isActive);
     
     vehicle.isActive = false;
-    console.log('Setting isActive to false, saving...');
-    
     await vehicle.save();
-    console.log('Vehicle successfully marked as inactive');
 
     res.json({
       message: 'Автомобіль успішно видалено',

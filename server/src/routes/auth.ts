@@ -69,7 +69,6 @@ router.post('/login', async (req, res) => {
 
     // Валідація вхідних даних
     if (!username || !password) {
-      console.log('Login failed: Missing username or password');
       return res.status(400).json({ 
         error: 'Логін та пароль є обов\'язковими' 
       });
@@ -77,14 +76,12 @@ router.post('/login', async (req, res) => {
 
     // Перевірка довжини логіна та пароля
     if (username.length < 3) {
-      console.log('Login failed: Username too short');
       return res.status(400).json({ 
         error: 'Логін повинен містити принаймні 3 символи' 
       });
     }
 
     if (password.length < 4) {
-      console.log('Login failed: Password too short');
       return res.status(400).json({ 
         error: 'Пароль повинен містити принаймні 4 символи' 
       });
@@ -93,7 +90,6 @@ router.post('/login', async (req, res) => {
     // Пошук користувача
     const user = await User.findOne({ username: username.toLowerCase().trim() });
     if (!user) {
-      console.log('Login failed: User not found for username:', username);
       return res.status(401).json({ 
         error: 'Неправильний логін. Перевірте правильність написання.' 
       });
@@ -102,7 +98,6 @@ router.post('/login', async (req, res) => {
     // Перевірка пароля
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.log('Login failed: Invalid password for username:', username);
       return res.status(401).json({ 
         error: 'Неправильний пароль. Перевірте правильність написання.' 
       });

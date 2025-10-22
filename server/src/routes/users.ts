@@ -169,29 +169,23 @@ router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRe
 router.delete('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    console.log(`Admin ${req.user!._id} attempting to delete user ${id}`);
 
     // Перевірка валідності ID
     if (!id || id === 'undefined') {
-      console.log('Invalid user ID provided:', id);
       return res.status(400).json({ error: 'Неправильний ID користувача' });
     }
 
     // Перевіряємо, щоб адміністратор не видалив сам себе
     if (req.user!._id.toString() === id) {
-      console.log('User tried to delete their own account');
       return res.status(400).json({ error: 'Ви не можете видалити свій власний аккаунт' });
     }
 
     const user = await User.findById(id);
     if (!user) {
-      console.log('User not found:', id);
       return res.status(404).json({ error: 'Користувача не знайдено' });
     }
 
-    console.log('Deleting user:', user.username);
     await User.findByIdAndDelete(id);
-    console.log('User deleted successfully');
 
     res.json({ message: 'Користювача успішно видалено' });
   } catch (error) {
