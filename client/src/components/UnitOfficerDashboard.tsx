@@ -194,7 +194,7 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
   return (
     <div className="unit-dashboard">
       <div className="dashboard-header">
-        <h2>Пульт чергового частини</h2>
+        <h2>Пульт чергового інституту</h2>
         <button onClick={openAddModal} className="add-button">
           + Додати автомобіль
         </button>

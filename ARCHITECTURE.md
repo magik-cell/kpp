@@ -19,7 +19,7 @@ client/src/
 │   ├── LoginPage.tsx    # Сторінка входу
 │   ├── Header.tsx       # Заголовок додатку
 │   ├── KppOfficerDashboard.tsx      # Панель чергового КПП
-│   └── UnitOfficerDashboard.tsx     # Панель чергового частини
+│   └── UnitOfficerDashboard.tsx     # Панель чергового інституту
 ├── services/            # API сервіси
 │   └── api.ts          # HTTP клієнт з Axios
 ├── types/              # TypeScript типи
@@ -128,7 +128,7 @@ type UserRole = 'kpp_officer' | 'unit_officer';
 
 ### Сценарій 2: Управління автомобілями
 ```
-1. Черговий частини відкриває список
+1. Черговий інституту відкриває список
 2. GET /api/vehicles (з пагінацією)
 3. Можливість: додати/редагувати/видалити
 4. POST/PUT/DELETE /api/vehicles/:id

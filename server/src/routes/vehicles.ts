@@ -15,7 +15,7 @@ const validateUkrainianLicensePlate = (licensePlate: string): boolean => {
   return ukrainianPlateRegex.test(licensePlate.toUpperCase());
 };
 
-// Отримання всіх автомобілів (для офіцерів частини та КПП)
+// Отримання всіх автомобілів (для офіцерів інституту та КПП)
 router.get('/', authenticateToken, requireRole(['unit_officer', 'kpp_officer']), async (req: AuthRequest, res) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
@@ -133,7 +133,7 @@ router.get('/check/:licensePlate', authenticateToken, async (req: AuthRequest, r
   }
 });
 
-// Додавання нового автомобіля (тільки для чергового частини)
+// Додавання нового автомобіля (тільки для чергового інституту)
 router.post('/', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
   try {
     const { licensePlate, brand, model, owner, accessType, validUntil } = req.body;
@@ -224,7 +224,7 @@ router.post('/', authenticateToken, requireRole(['unit_officer']), async (req: A
   }
 });
 
-// Редагування автомобіля (тільки для чергового частини)
+// Редагування автомобіля (тільки для чергового інституту)
 router.put('/:id', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;

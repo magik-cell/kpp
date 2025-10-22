@@ -178,7 +178,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const getRoleDisplayName = (role: string) => {
     switch (role) {
       case 'admin': return 'Адміністратор';
-      case 'unit_officer': return 'Черговий частини';
+      case 'unit_officer': return 'Черговий інституту';
       case 'kpp_officer': return 'Черговий КПП';
       default: return role;
     }
@@ -361,7 +361,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                   required
                   disabled={isLoading}
                 >
-                  <option value="unit_officer">Черговий частини</option>
+                  <option value="unit_officer">Черговий інституту</option>
                   <option value="kpp_officer">Черговий КПП</option>
                   <option value="admin">Адміністратор</option>
                 </select>

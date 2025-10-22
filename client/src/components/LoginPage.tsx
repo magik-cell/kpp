@@ -177,7 +177,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           <h3>Ролі користувачів:</h3>
           <ul>
             <li><strong>Черговий КПП</strong> - контроль проїзду транспорту</li>
-            <li><strong>Черговий частини</strong> - управління списком автомобілів</li>
+            <li><strong>Черговий інституту</strong> - управління списком автомобілів</li>
           </ul>
         </div>
       </div>

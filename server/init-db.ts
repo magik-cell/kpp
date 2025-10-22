@@ -97,7 +97,7 @@ async function initializeDatabase() {
     console.log('│ Логін           │ Пароль       │ Роль                         │');
     console.log('├─────────────────┼──────────────┼──────────────────────────────┤');
     console.log('│ kpp_officer     │ password123  │ Черговий КПП                 │');
-    console.log('│ unit_officer    │ password123  │ Черговий частини             │');
+    console.log('│ unit_officer    │ password123  │ Черговий інституту           │');
     console.log('└─────────────────┴──────────────┴──────────────────────────────┘');
 
   } catch (error) {

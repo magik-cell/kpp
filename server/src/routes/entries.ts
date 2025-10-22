@@ -114,7 +114,7 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
 });
 
 
-// Отримання всіх записів проїздів з фільтрацією (для чергового частини)
+// Отримання всіх записів проїздів з фільтрацією (для чергового інституту)
 router.get('/', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
   try {
     const { 
