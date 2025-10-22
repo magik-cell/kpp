@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { User, VehicleCheckResponse } from '../types';
 import apiService from '../services/api';
+import { formatDateTime } from '../utils/dateTime';
+
+// Функція валідації українських номерів автомобілів
+const validateUkrainianLicensePlate = (licensePlate: string): boolean => {
+  const ukrainianPlateRegex = /^[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{1,2}[0-9]{3,4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{0,2}$|^[0-9]{4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{2}$/;
+  return ukrainianPlateRegex.test(licensePlate.toUpperCase());
+};
 
 interface KppOfficerDashboardProps {
   user: User;
@@ -30,6 +37,12 @@ const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!licensePlate.trim()) return;
+
+    // Валідація номера автомобіля
+    if (!validateUkrainianLicensePlate(licensePlate.trim())) {
+      setError('Неправильний формат номера автомобіля. Використовуйте українські літери та цифри (наприклад: АА1234ВВ)');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
@@ -172,7 +185,7 @@ const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
               <div className="detail-row">
                 <span className="label">Дійсний до:</span>
                 <span className="value">
-                  {new Date(vehicleInfo.vehicle.validUntil).toLocaleString('uk-UA')}
+                  {formatDateTime(vehicleInfo.vehicle.validUntil)}
                 </span>
               </div>
             )}
@@ -192,7 +205,7 @@ const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
                   <div className="detail-row">
                     <span className="label">Час в'їзду:</span>
                     <span className="value">
-                      {new Date(vehicleInfo.lastEntry.entryTime).toLocaleString('uk-UA')}
+                      {formatDateTime(vehicleInfo.lastEntry.entryTime)}
                     </span>
                   </div>
                 )}
@@ -200,7 +213,7 @@ const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
                   <div className="detail-row">
                     <span className="label">Час виїзду:</span>
                     <span className="value">
-                      {new Date(vehicleInfo.lastEntry.exitTime).toLocaleString('uk-UA')}
+                      {formatDateTime(vehicleInfo.lastEntry.exitTime)}
                     </span>
                   </div>
                 )}

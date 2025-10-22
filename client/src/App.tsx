@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './components/LoginPage';
 import KppOfficerDashboard from './components/KppOfficerDashboard';
 import UnitOfficerDashboard from './components/UnitOfficerDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import Header from './components/Header';
 import { User } from './types';
 import './styles/App.scss';
@@ -52,7 +53,12 @@ const App: React.FC = () => {
   }
 
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <div className="app">
         {currentUser && <Header user={currentUser} onLogout={handleLogout} />}
         
@@ -71,7 +77,9 @@ const App: React.FC = () => {
               path="/" 
               element={
                 currentUser ? (
-                  currentUser.role === 'kpp_officer' ? (
+                  currentUser.role === 'admin' ? (
+                    <AdminDashboard user={currentUser} />
+                  ) : currentUser.role === 'kpp_officer' ? (
                     <KppOfficerDashboard user={currentUser} />
                   ) : (
                     <UnitOfficerDashboard user={currentUser} />

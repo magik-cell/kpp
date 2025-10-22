@@ -19,7 +19,7 @@ const VehicleSchema: Schema = new Schema({
     required: [true, 'Номер авто є обов\'язковим'],
     unique: true,
     uppercase: true,
-    match: [/^[A-Z0-9]+$/, 'Номер авто може містити лише літери та цифри']
+    match: [/^[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ0-9]+$/, 'Номер авто може містити лише українські літери та цифри']
   },
   brand: {
     type: String,
@@ -48,6 +48,11 @@ const VehicleSchema: Schema = new Schema({
     type: Date,
     validate: {
       validator: function(this: IVehicle, value: Date) {
+        // Якщо автомобіль неактивний, пропускаємо валідацію
+        if (!this.isActive) {
+          return true;
+        }
+        
         if (this.accessType === 'permanent') {
           return value === undefined || value === null;
         }

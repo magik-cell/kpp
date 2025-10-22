@@ -31,7 +31,10 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
-    return res.status(403).json({ error: 'Недійсний токен' });
+    return res.status(403).json({ 
+      error: 'Недійсний токен', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 };
 

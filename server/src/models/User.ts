@@ -3,8 +3,9 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IUser extends Document {
   username: string;
   password: string;
-  role: 'kpp_officer' | 'unit_officer';
+  role: 'kpp_officer' | 'unit_officer' | 'admin';
   fullName: string;
+  createdBy?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,8 +26,8 @@ const UserSchema: Schema = new Schema({
   role: {
     type: String,
     enum: {
-      values: ['kpp_officer', 'unit_officer'],
-      message: 'Роль повинна бути kpp_officer або unit_officer'
+      values: ['kpp_officer', 'unit_officer', 'admin'],
+      message: 'Роль повинна бути kpp_officer, unit_officer або admin'
     },
     required: true
   },
@@ -34,6 +35,11 @@ const UserSchema: Schema = new Schema({
     type: String,
     required: [true, 'Повне ім\'я є обов\'язковим'],
     maxlength: [100, 'Повне ім\'я не може містити більше 100 символів']
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
   }
 }, {
   timestamps: true

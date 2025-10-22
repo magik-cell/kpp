@@ -2,6 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { User, Vehicle, VehicleCreateRequest } from '../types';
 import apiService from '../services/api';
 import VehicleHistory from './VehicleHistory';
+import { formatDate } from '../utils/dateTime';
+
+// Функція валідації українських номерів автомобілів
+const validateUkrainianLicensePlate = (licensePlate: string): boolean => {
+  const ukrainianPlateRegex = /^[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{1,2}[0-9]{3,4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{0,2}$|^[0-9]{4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{2}$/;
+  return ukrainianPlateRegex.test(licensePlate.toUpperCase());
+};
 
 interface UnitOfficerDashboardProps {
   user: User;
@@ -111,6 +118,13 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
     setIsLoading(true);
     setError('');
     setSuccess('');
+
+    // Валідація номера автомобіля
+    if (!validateUkrainianLicensePlate(formData.licensePlate)) {
+      setError('Неправильний формат номера автомобіля. Використовуйте українські літери та цифри (наприклад: АА1234ВВ)');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const submitData = { ...formData };
@@ -235,8 +249,12 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
               </tr>
             </thead>
             <tbody>
-              {vehicles.map((vehicle) => (
-                <tr key={vehicle.id}>
+              {vehicles.map((vehicle, index) => {
+                if (!vehicle.id) {
+                  console.warn('Vehicle without id:', vehicle, 'using fallback key:', `vehicle-${index}`);
+                }
+                return (
+                <tr key={vehicle.id || `vehicle-${index}`}>
                   <td className="license-plate">
                     <button 
                       className="license-plate-button"
@@ -255,11 +273,11 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
                   </td>
                   <td>
                     {vehicle.validUntil ? 
-                      new Date(vehicle.validUntil).toLocaleDateString('uk-UA') : 
+                      formatDate(vehicle.validUntil) : 
                       'Безстроково'
                     }
                   </td>
-                  <td>{new Date(vehicle.createdAt).toLocaleDateString('uk-UA')}</td>
+                  <td>{formatDate(vehicle.createdAt)}</td>
                   <td className="actions">
                     <button 
                       onClick={() => openEditModal(vehicle)}
@@ -277,7 +295,8 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -339,7 +358,7 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
                     type="text"
                     value={formData.licensePlate}
                     onChange={(e) => handleFormChange('licensePlate', e.target.value.toUpperCase())}
-                    placeholder="AA1234BB"
+                    placeholder="АА1234ВВ"
                     required
                     disabled={isLoading}
                   />

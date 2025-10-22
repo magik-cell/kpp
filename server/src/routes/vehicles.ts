@@ -5,8 +5,18 @@ import { authenticateToken, requireRole, AuthRequest } from '../middleware/auth'
 
 const router = express.Router();
 
-// Отримання всіх автомобілів (тільки для чергового частини)
-router.get('/', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
+// Функція валідації українських номерів автомобілів
+const validateUkrainianLicensePlate = (licensePlate: string): boolean => {
+  // Українські номери можуть мати різні формати:
+  // AA1234BB - стандартний формат (2 літери, 4 цифри, 2 літери)
+  // A123BB - скорочений формат (1 літера, 3 цифри, 2 літери)
+  // 1234AB - старий формат (4 цифри, 2 літери)
+  const ukrainianPlateRegex = /^[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{1,2}[0-9]{3,4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{0,2}$|^[0-9]{4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{2}$/;
+  return ukrainianPlateRegex.test(licensePlate.toUpperCase());
+};
+
+// Отримання всіх автомобілів (для офіцерів частини та КПП)
+router.get('/', authenticateToken, requireRole(['unit_officer', 'kpp_officer']), async (req: AuthRequest, res) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
     const pageNum = parseInt(page as string);
@@ -31,8 +41,23 @@ router.get('/', authenticateToken, requireRole(['unit_officer']), async (req: Au
 
     const total = await Vehicle.countDocuments(query);
 
+    // Перетворюємо _id в id для клієнта
+    const formattedVehicles = vehicles.map(vehicle => ({
+      id: vehicle._id.toString(),
+      licensePlate: vehicle.licensePlate,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      owner: vehicle.owner,
+      accessType: vehicle.accessType,
+      validUntil: vehicle.validUntil,
+      isActive: vehicle.isActive,
+      createdBy: vehicle.createdBy,
+      createdAt: vehicle.createdAt,
+      updatedAt: vehicle.updatedAt
+    }));
+
     res.json({
-      vehicles,
+      vehicles: formattedVehicles,
       pagination: {
         currentPage: pageNum,
         totalPages: Math.ceil(total / limitNum),
@@ -120,6 +145,13 @@ router.post('/', authenticateToken, requireRole(['unit_officer']), async (req: A
       });
     }
 
+    // Валідація формату українського номера
+    if (!validateUkrainianLicensePlate(licensePlate)) {
+      return res.status(400).json({ 
+        error: 'Неправильний формат номера автомобіля. Використовуйте українські літери та цифри (наприклад: АА1234ВВ)'
+      });
+    }
+
     // Перевірка наявності автомобіля
     const existingVehicle = await Vehicle.findOne({ 
       licensePlate: licensePlate.toUpperCase() 
@@ -159,9 +191,24 @@ router.post('/', authenticateToken, requireRole(['unit_officer']), async (req: A
     await newVehicle.save();
     await newVehicle.populate('createdBy', 'username fullName');
 
+    // Форматуємо відповідь з id замість _id
+    const formattedVehicle = {
+      id: newVehicle._id.toString(),
+      licensePlate: newVehicle.licensePlate,
+      brand: newVehicle.brand,
+      model: newVehicle.vehicleModel,
+      owner: newVehicle.owner,
+      accessType: newVehicle.accessType,
+      validUntil: newVehicle.validUntil,
+      isActive: newVehicle.isActive,
+      createdBy: newVehicle.createdBy,
+      createdAt: newVehicle.createdAt,
+      updatedAt: newVehicle.updatedAt
+    };
+
     res.status(201).json({
       message: 'Автомобіль успішно додано',
-      vehicle: newVehicle
+      vehicle: formattedVehicle
     });
   } catch (error: any) {
     console.error('Add vehicle error:', error);
@@ -186,6 +233,13 @@ router.put('/:id', authenticateToken, requireRole(['unit_officer']), async (req:
     const vehicle = await Vehicle.findById(id);
     if (!vehicle) {
       return res.status(404).json({ error: 'Автомобіль не знайдено' });
+    }
+
+    // Валідація формату українського номера (якщо змінюється)
+    if (licensePlate && !validateUkrainianLicensePlate(licensePlate)) {
+      return res.status(400).json({ 
+        error: 'Неправильний формат номера автомобіля. Використовуйте українські літери та цифри (наприклад: АА1234ВВ)'
+      });
     }
 
     // Перевірка унікальності номера (якщо змінюється)
@@ -223,9 +277,24 @@ router.put('/:id', authenticateToken, requireRole(['unit_officer']), async (req:
     await vehicle.save();
     await vehicle.populate('createdBy', 'username fullName');
 
+    // Форматуємо відповідь з id замість _id
+    const formattedVehicle = {
+      id: vehicle._id.toString(),
+      licensePlate: vehicle.licensePlate,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      owner: vehicle.owner,
+      accessType: vehicle.accessType,
+      validUntil: vehicle.validUntil,
+      isActive: vehicle.isActive,
+      createdBy: vehicle.createdBy,
+      createdAt: vehicle.createdAt,
+      updatedAt: vehicle.updatedAt
+    };
+
     res.json({
       message: 'Автомобіль успішно оновлено',
-      vehicle
+      vehicle: formattedVehicle
     });
   } catch (error: any) {
     console.error('Update vehicle error:', error);
@@ -245,14 +314,21 @@ router.put('/:id', authenticateToken, requireRole(['unit_officer']), async (req:
 router.delete('/:id', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
+    console.log('Delete vehicle request for ID:', id);
 
     const vehicle = await Vehicle.findById(id);
     if (!vehicle) {
+      console.log('Vehicle not found for ID:', id);
       return res.status(404).json({ error: 'Автомобіль не знайдено' });
     }
 
+    console.log('Found vehicle:', vehicle.licensePlate, 'Current isActive:', vehicle.isActive);
+    
     vehicle.isActive = false;
+    console.log('Setting isActive to false, saving...');
+    
     await vehicle.save();
+    console.log('Vehicle successfully marked as inactive');
 
     res.json({
       message: 'Автомобіль успішно видалено',

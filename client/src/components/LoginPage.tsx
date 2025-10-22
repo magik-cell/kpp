@@ -11,17 +11,91 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({ username: false, password: false });
+
+  // Debug логування перед рендером
+  console.log('LoginPage render - current error:', error, 'truthy:', !!error);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({ username: false, password: false });
     setIsLoading(true);
 
+    // Клієнтська валідація
+    const newFieldErrors = { username: false, password: false };
+    
+    if (!username.trim()) {
+      setError('Введіть логін');
+      newFieldErrors.username = true;
+      setFieldErrors(newFieldErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Введіть пароль');
+      newFieldErrors.password = true;
+      setFieldErrors(newFieldErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    if (username.trim().length < 3) {
+      setError('Логін повинен містити принаймні 3 символи');
+      newFieldErrors.username = true;
+      setFieldErrors(newFieldErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 4) {
+      setError('Пароль повинен містити принаймні 4 символи');
+      newFieldErrors.password = true;
+      setFieldErrors(newFieldErrors);
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await apiService.login({ username, password });
+      console.log('Making login request...');
+      const response = await apiService.login({ 
+        username: username.trim(), 
+        password: password 
+      });
+      console.log('Login request successful:', response);
       onLogin(response.user, response.token);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Помилка входу в систему');
+      console.error('Login failed:', err);
+      
+      let errorMessage = 'Помилка входу в систему. Спробуйте ще раз.';
+      let shouldHighlightFields = false;
+      
+      if (err.response?.status === 401) {
+        errorMessage = err.response?.data?.error || 'Невірний логін або пароль';
+        shouldHighlightFields = true;
+      } else if (err.response?.status === 403) {
+        errorMessage = 'Доступ заборонено';
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'Помилка сервера. Спробуйте пізніше.';
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+      
+      console.log('About to set error:', errorMessage);
+      console.log('Error state before setError:', error);
+      
+      // Використовуємо setTimeout для затримки встановлення помилки
+      setTimeout(() => {
+        console.log('Setting error after timeout:', errorMessage);
+        setError(errorMessage);
+      }, 100);
+      
+      console.log('setError scheduled with:', errorMessage);
+      
+      if (shouldHighlightFields) {
+        setFieldErrors({ username: true, password: true });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -42,16 +116,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
           )}
 
+
+
           <div className="form-group">
             <label htmlFor="username">Логін</label>
             <input
               type="text"
               id="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                if (fieldErrors.username) {
+                  setFieldErrors(prev => ({ ...prev, username: false }));
+                }
+                // Тимчасово відключаємо автоочищення для тестування
+                // if (error) {
+                //   clearErrorWithDelay();
+                // }
+              }}
               required
               disabled={isLoading}
               placeholder="Введіть ваш логін"
+              className={fieldErrors.username ? 'error' : ''}
             />
           </div>
 
@@ -61,10 +147,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (fieldErrors.password) {
+                  setFieldErrors(prev => ({ ...prev, password: false }));
+                }
+                // Тимчасово відключаємо автоочищення для тестування
+                // if (error) {
+                //   clearErrorWithDelay();
+                // }
+              }}
               required
               disabled={isLoading}
               placeholder="Введіть ваш пароль"
+              className={fieldErrors.password ? 'error' : ''}
             />
           </div>
 

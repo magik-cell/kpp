@@ -2,13 +2,16 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { 
   LoginRequest, 
   LoginResponse, 
+  User,
   Vehicle, 
   VehicleCreateRequest, 
   VehicleCheckResponse,
   EntryRecord,
   EntryToggleResponse,
   PaginatedResponse,
-  SearchFilters
+  SearchFilters,
+  UserCreateRequest,
+  UserUpdateRequest
 } from '../types';
 
 class ApiService {
@@ -44,12 +47,9 @@ class ApiService {
         return response;
       },
       (error: { response: { status: number; }; }) => {
-        if (error.response?.status === 401) {
-          // Видаляємо токен та перенаправляємо на логін
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('currentUser');
-          window.location.href = '/login';
-        }
+        // Не перенаправляємо автоматично при 401 для login форми
+        // Дозволяємо LoginPage обробити помилку самостійно
+        console.log('API interceptor caught error:', error.response?.status);
         return Promise.reject(error);
       }
     );
@@ -101,11 +101,34 @@ class ApiService {
   }
 
   async getEntryHistory(licensePlate: string, params?: { page?: number; limit?: number }): Promise<PaginatedResponse<EntryRecord>> {
-    const response = await this.api.get(`/entries/history/${encodeURIComponent(licensePlate)}`, { params });
-    return {
-      data: response.data.entries,
-      pagination: response.data.pagination
-    };
+    console.log('ApiService: getEntryHistory called with:', licensePlate, params);
+    try {
+      const url = `/entries/history/${encodeURIComponent(licensePlate)}`;
+      console.log('ApiService: Making request to:', url);
+      
+      const response = await this.api.get(url, { params });
+      console.log('ApiService: Raw response:', response);
+      console.log('ApiService: Response data:', response.data);
+      console.log('ApiService: Response status:', response.status);
+      
+      // Сервер повертає просто масив записів, не пагінований відповідь
+      const result = {
+        data: response.data || [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: response.data ? response.data.length : 0,
+          hasNext: false,
+          hasPrev: false
+        }
+      };
+      
+      console.log('ApiService: Returning result:', result);
+      return result;
+    } catch (error) {
+      console.error('ApiService: Error in getEntryHistory:', error);
+      throw error;
+    }
   }
 
   async getEntries(params?: SearchFilters & { page?: number; limit?: number }): Promise<PaginatedResponse<EntryRecord>> {
@@ -122,6 +145,30 @@ class ApiService {
       count: response.data.count,
       vehicles: response.data.vehicles
     };
+  }
+
+  // Методи для управління користувачами (тільки для адміністратора)
+  async getUsers(params?: { page?: number; limit?: number; search?: string }): Promise<PaginatedResponse<User>> {
+    const response = await this.api.get('/users', { params });
+    return {
+      data: response.data.users,
+      pagination: response.data.pagination
+    };
+  }
+
+  async createUser(userData: UserCreateRequest): Promise<any> {
+    const response = await this.api.post('/users', userData);
+    return response.data;
+  }
+
+  async updateUser(userId: string, userData: UserUpdateRequest): Promise<any> {
+    const response = await this.api.put(`/users/${userId}`, userData);
+    return response.data;
+  }
+
+  async deleteUser(userId: string): Promise<any> {
+    const response = await this.api.delete(`/users/${userId}`);
+    return response.data;
   }
 
   // Перевірка здоров'я сервера
