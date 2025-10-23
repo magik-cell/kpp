@@ -44,23 +44,24 @@ router.get('/', authenticateToken, requireRole(['unit_officer', 'kpp_officer']),
 
     // Перетворюємо _id в id для клієнта
     const formattedVehicles = vehicles.map((vehicle: any) => {
+      // Використовуємо toObject() щоб отримати чисті дані без Mongoose методів
+      const vehicleData = vehicle.toObject();
       console.log('Mapping vehicle:', {
-        vehicleModel: vehicle.vehicleModel,
-        model: vehicle.model,
-        allKeys: Object.keys(vehicle)
+        vehicleModel: vehicleData.vehicleModel,
+        allKeys: Object.keys(vehicleData)
       });
       return {
-        id: vehicle._id.toString(),
-        licensePlate: vehicle.licensePlate,
-        brand: vehicle.brand,
-        model: vehicle.vehicleModel, // Виправлено: використовуємо vehicleModel з бази даних
-        owner: vehicle.owner,
-        accessType: vehicle.accessType,
-        validUntil: vehicle.validUntil,
-        isActive: vehicle.isActive,
-        createdBy: vehicle.createdBy,
-        createdAt: vehicle.createdAt,
-        updatedAt: vehicle.updatedAt
+        id: vehicleData._id.toString(),
+        licensePlate: vehicleData.licensePlate,
+        brand: vehicleData.brand,
+        model: vehicleData.vehicleModel, // Використовуємо vehicleModel з бази даних
+        owner: vehicleData.owner,
+        accessType: vehicleData.accessType,
+        validUntil: vehicleData.validUntil,
+        isActive: vehicleData.isActive,
+        createdBy: vehicleData.createdBy,
+        createdAt: vehicleData.createdAt,
+        updatedAt: vehicleData.updatedAt
       };
     });
 

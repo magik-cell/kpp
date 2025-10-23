@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import path from 'path';
 
 import authRoutes from './routes/auth';
 import vehicleRoutes from './routes/vehicles';
@@ -19,11 +18,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kpp_co
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../public')));
-}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -83,17 +77,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Serve React app in production for any non-API routes
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
-  });
-} else {
-  // 404 handler for development
-  app.use('*', (req, res) => {
-    res.status(404).json({ error: 'Маршрут не знайдено' });
-  });
-}
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Маршрут не знайдено' });
+});
 
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI)
@@ -106,8 +93,16 @@ mongoose.connect(MONGODB_URI)
     });
   })
   .catch((error: any) => {
-    console.error('❌ Помилка підключення до MongoDB:', error);
-    process.exit(1);
+    console.warn('⚠️  Попередження: Не вдалося підключитися до MongoDB:', error.message);
+    console.log('🔄 Запускаю сервер без бази даних (тестовий режим)');
+    
+    // Запускаємо сервер навіть без MongoDB для тестування
+    app.listen(PORT, () => {
+      console.log(`🚀 Server запущено на порту ${PORT} (без БД)`);
+      console.log(`📊 Health check: http://localhost:${PORT}/health`);
+      console.log(`📊 API Health check: http://localhost:${PORT}/api/health`);
+      console.log('💡 Для повної функціональності потрібно підключення до MongoDB');
+    });
   });
 
 export default app;

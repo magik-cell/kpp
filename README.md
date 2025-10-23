@@ -36,7 +36,7 @@
 ## 📁 Структура проекту
 
 ```
-Kyrsach/
+my_kyrsova/
 ├── client/                 # React фронтенд
 │   ├── public/
 │   ├── src/
