@@ -93,7 +93,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <h1>Система контролю КПП</h1>
+          <div className="logo-container">
+            <img src="/images/logo.png" alt="Інститутський логотип" className="institute-logo" />
+          </div>
+          <h2>Система контролю КПП</h2>
           <p>Увійдіть до системи для продовження роботи</p>
         </div>
 
@@ -124,7 +127,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               }}
               required
               disabled={isLoading}
-              placeholder="Введіть ваш логін"
+              placeholder="Введіть службовий логін"
               className={fieldErrors.username ? 'error' : ''}
             />
           </div>
@@ -147,7 +150,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               }}
               required
               disabled={isLoading}
-              placeholder="Введіть ваш пароль"
+              placeholder="Введіть службовий пароль"
               className={fieldErrors.password ? 'error' : ''}
             />
           </div>

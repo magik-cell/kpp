@@ -1,20 +1,22 @@
 .admin-dashboard {
-  padding: 20px;
-  max-width: 1200px;
+  padding: 32px;
+  width: 100%;
   margin: 0 auto;
 
   .dashboard-header {
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     text-align: center;
 
     h1 {
       color: #2c3e50;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      font-size: 36px;
+      font-weight: 700;
     }
 
     p {
       color: #7f8c8d;
-      font-size: 16px;
+      font-size: 18px;
     }
   }
 
@@ -51,15 +53,16 @@
 
       .search-input {
         flex: 1;
-        padding: 10px 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 14px;
+        padding: 14px 18px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        min-height: 50px;
 
         &:focus {
           outline: none;
           border-color: #3498db;
-          box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+          box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
       }
     }
@@ -75,9 +78,10 @@
     .users-table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 16px;
 
       th, td {
-        padding: 12px 16px;
+        padding: 20px 24px;
         text-align: left;
         border-bottom: 1px solid #eee;
       }
@@ -86,6 +90,14 @@
         background-color: #f8f9fa;
         font-weight: 600;
         color: #2c3e50;
+        font-size: 18px;
+        height: 60px;
+      }
+
+      td {
+        font-size: 16px;
+        height: 70px;
+        vertical-align: middle;
       }
 
       tr:hover {
@@ -94,7 +106,10 @@
 
       .actions-cell {
         .btn {
-          margin-right: 8px;
+          margin-right: 12px;
+          padding: 10px 16px;
+          font-size: 14px;
+          min-height: 40px;
 
           &:last-child {
             margin-right: 0;
@@ -137,12 +152,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 20px;
-    gap: 15px;
+    margin-top: 32px;
+    gap: 20px;
 
     .page-info {
-      font-weight: 500;
+      font-weight: 600;
       color: #2c3e50;
+      font-size: 18px;
+    }
+
+    .btn {
+      min-height: 50px;
+      font-size: 16px;
     }
   }
 
@@ -160,68 +181,75 @@
 
     .modal {
       background: white;
-      border-radius: 8px;
+      border-radius: 12px;
       width: 90%;
-      max-width: 500px;
+      max-width: 600px;
       max-height: 90vh;
       overflow: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 
       .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px;
+        padding: 24px;
         border-bottom: 1px solid #eee;
 
         h3 {
           margin: 0;
           color: #2c3e50;
+          font-size: 24px;
+          font-weight: 600;
         }
 
         .modal-close {
           background: none;
           border: none;
-          font-size: 24px;
+          font-size: 28px;
           cursor: pointer;
           color: #7f8c8d;
           padding: 0;
-          width: 30px;
-          height: 30px;
+          width: 40px;
+          height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
+          border-radius: 6px;
 
           &:hover {
             color: #2c3e50;
+            background-color: #f8f9fa;
           }
         }
       }
 
       .modal-form {
-        padding: 20px;
+        padding: 24px;
 
         .form-group {
-          margin-bottom: 20px;
+          margin-bottom: 24px;
 
           label {
             display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
+            margin-bottom: 8px;
+            font-weight: 600;
             color: #2c3e50;
+            font-size: 16px;
           }
 
           input, select {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 14px 18px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
             box-sizing: border-box;
+            min-height: 52px;
 
             &:focus {
               outline: none;
               border-color: #3498db;
-              box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+              box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
             }
 
             &:disabled {
@@ -242,17 +270,18 @@
   }
 
   .btn {
-    padding: 8px 16px;
+    padding: 12px 20px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    min-height: 44px;
 
     &:disabled {
       opacity: 0.6;
