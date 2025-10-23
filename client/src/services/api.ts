@@ -2,13 +2,16 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { 
   LoginRequest, 
   LoginResponse, 
+  User,
   Vehicle, 
   VehicleCreateRequest, 
   VehicleCheckResponse,
   EntryRecord,
   EntryToggleResponse,
   PaginatedResponse,
-  SearchFilters
+  SearchFilters,
+  UserCreateRequest,
+  UserUpdateRequest
 } from '../types';
 
 class ApiService {
@@ -16,7 +19,7 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: '/api',
+      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -44,12 +47,8 @@ class ApiService {
         return response;
       },
       (error: { response: { status: number; }; }) => {
-        if (error.response?.status === 401) {
-          // Видаляємо токен та перенаправляємо на логін
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('currentUser');
-          window.location.href = '/login';
-        }
+        // Не перенаправляємо автоматично при 401 для login форми
+        // Дозволяємо LoginPage обробити помилку самостійно
         return Promise.reject(error);
       }
     );
@@ -101,11 +100,25 @@ class ApiService {
   }
 
   async getEntryHistory(licensePlate: string, params?: { page?: number; limit?: number }): Promise<PaginatedResponse<EntryRecord>> {
-    const response = await this.api.get(`/entries/history/${encodeURIComponent(licensePlate)}`, { params });
-    return {
-      data: response.data.entries,
-      pagination: response.data.pagination
-    };
+    try {
+      const url = `/entries/history/${encodeURIComponent(licensePlate)}`;
+      const response = await this.api.get(url, { params });
+      
+      // Сервер повертає просто масив записів, не пагінований відповідь
+      return {
+        data: response.data || [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: response.data ? response.data.length : 0,
+          hasNext: false,
+          hasPrev: false
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching entry history:', error);
+      throw error;
+    }
   }
 
   async getEntries(params?: SearchFilters & { page?: number; limit?: number }): Promise<PaginatedResponse<EntryRecord>> {
@@ -122,6 +135,30 @@ class ApiService {
       count: response.data.count,
       vehicles: response.data.vehicles
     };
+  }
+
+  // Методи для управління користувачами (тільки для адміністратора)
+  async getUsers(params?: { page?: number; limit?: number; search?: string }): Promise<PaginatedResponse<User>> {
+    const response = await this.api.get('/users', { params });
+    return {
+      data: response.data.users,
+      pagination: response.data.pagination
+    };
+  }
+
+  async createUser(userData: UserCreateRequest): Promise<any> {
+    const response = await this.api.post('/users', userData);
+    return response.data;
+  }
+
+  async updateUser(userId: string, userData: UserUpdateRequest): Promise<any> {
+    const response = await this.api.put(`/users/${userId}`, userData);
+    return response.data;
+  }
+
+  async deleteUser(userId: string): Promise<any> {
+    const response = await this.api.delete(`/users/${userId}`);
+    return response.data;
   }
 
   // Перевірка здоров'я сервера

@@ -2,7 +2,7 @@
 export interface User {
   id: string;
   username: string;
-  role: 'kpp_officer' | 'unit_officer';
+  role: 'kpp_officer' | 'unit_officer' | 'admin';
   fullName: string;
 }
 
@@ -116,4 +116,24 @@ export interface SearchFilters {
   dateFrom?: string;
   dateTo?: string;
   licensePlate?: string;
+}
+
+// Типи для управління користувачами
+export interface UserCreateRequest {
+  username: string;
+  password: string;
+  fullName: string;
+  role: 'kpp_officer' | 'unit_officer' | 'admin';
+}
+
+export interface UserUpdateRequest {
+  username?: string;
+  password?: string;
+  fullName?: string;
+  role?: 'kpp_officer' | 'unit_officer' | 'admin';
+}
+
+export interface UsersResponse {
+  users: User[];
+  pagination: Pagination;
 }

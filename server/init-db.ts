@@ -39,12 +39,12 @@ async function initializeDatabase() {
 
     const createdUsers = await User.insertMany(users);
     console.log('👥 Створено тестових користувачів:');
-    createdUsers.forEach(user => {
+    createdUsers.forEach((user: any) => {
       console.log(`   - ${user.username} (${user.role}) - ${user.fullName}`);
     });
 
     // Створення тестових автомобілів
-    const unitOfficer = createdUsers.find(u => u.role === 'unit_officer');
+    const unitOfficer = createdUsers.find((u: any) => u.role === 'unit_officer');
     
     if (unitOfficer) {
       // Автомобіль з постійним доступом
@@ -97,7 +97,7 @@ async function initializeDatabase() {
     console.log('│ Логін           │ Пароль       │ Роль                         │');
     console.log('├─────────────────┼──────────────┼──────────────────────────────┤');
     console.log('│ kpp_officer     │ password123  │ Черговий КПП                 │');
-    console.log('│ unit_officer    │ password123  │ Черговий частини             │');
+    console.log('│ unit_officer    │ password123  │ Черговий інституту           │');
     console.log('└─────────────────┴──────────────┴──────────────────────────────┘');
 
   } catch (error) {

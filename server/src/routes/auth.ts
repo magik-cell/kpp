@@ -65,24 +65,47 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log('Login attempt for username:', username);
 
+    // Валідація вхідних даних
     if (!username || !password) {
       return res.status(400).json({ 
         error: 'Логін та пароль є обов\'язковими' 
       });
     }
 
-    // Пошук користувача
-    const user = await User.findOne({ username });
+    // Перевірка довжини логіна та пароля
+    if (username.length < 3) {
+      return res.status(400).json({ 
+        error: 'Логін повинен містити принаймні 3 символи' 
+      });
+    }
+
+    if (password.length < 4) {
+      return res.status(400).json({ 
+        error: 'Пароль повинен містити принаймні 4 символи' 
+      });
+    }
+
+    // Пошук користувача (регістр не важливий)
+    const user = await User.findOne({ 
+      username: { $regex: new RegExp(`^${username.trim()}$`, 'i') }
+    });
     if (!user) {
-      return res.status(401).json({ error: 'Неправильний логін або пароль' });
+      return res.status(401).json({ 
+        error: 'Неправильний логін. Перевірте правильність написання.' 
+      });
     }
 
     // Перевірка пароля
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Неправильний логін або пароль' });
+      return res.status(401).json({ 
+        error: 'Неправильний пароль. Перевірте правильність написання.' 
+      });
     }
+
+    console.log('Login successful for username:', username, 'role:', user.role);
 
     // Створення JWT токену
     const token = jwt.sign(
@@ -105,9 +128,25 @@ router.post('/login', async (req, res) => {
         fullName: user.fullName
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Внутрішня помилка сервера' });
+    
+    // Обробка різних типів помилок
+    if (error.name === 'MongoError') {
+      return res.status(503).json({ 
+        error: 'Проблеми з підключенням до бази даних. Спробуйте пізніше.' 
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: 'Некоректні дані для входу' 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Внутрішня помилка сервера. Зверніться до адміністратора.' 
+    });
   }
 });
 

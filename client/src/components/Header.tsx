@@ -12,7 +12,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
       case 'kpp_officer':
         return 'Черговий КПП';
       case 'unit_officer':
-        return 'Черговий частини';
+        return 'Черговий інституту';
       default:
         return role;
     }

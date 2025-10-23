@@ -1,0 +1,46 @@
+# Залежності
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Файли розробки
+.git
+.gitignore
+README.md
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Логи
+logs
+*.log
+
+# Тимчасові файли
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+
+# Збірка (буде створена в контейнері)
+build
+dist
+
+# Тести
+src/**/*.test.ts
+src/**/*.test.tsx
+src/**/*.spec.ts
+src/**/*.spec.tsx
+
+# Конфігурація редакторів
+.editorconfig
+.eslintrc*
+.prettierrc*
+
+# Docker файли
+Dockerfile
+.dockerignore
+docker-compose*.yml

@@ -56,7 +56,7 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
         entryTime: currentTime,
         exitTime: null,
         status: 'entered',
-        processedBy: req.user!._id
+        processedBy: (req.user as any)!._id
       });
 
       await newEntry.save();
@@ -113,57 +113,8 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
   }
 });
 
-// Отримання історії проїздів для конкретного автомобіля
-router.get('/history/:licensePlate', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const { licensePlate } = req.params;
-    const { page = 1, limit = 10 } = req.query;
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
-    const skip = (pageNum - 1) * limitNum;
 
-    const vehicle = await Vehicle.findOne({ 
-      licensePlate: licensePlate.toUpperCase() 
-    });
-
-    if (!vehicle) {
-      return res.status(404).json({ 
-        error: 'Автомобіль не знайдено',
-        licensePlate: licensePlate.toUpperCase()
-      });
-    }
-
-    const entries = await Entry.find({ vehicle: vehicle._id })
-      .populate('processedBy', 'username fullName')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNum);
-
-    const total = await Entry.countDocuments({ vehicle: vehicle._id });
-
-    res.json({
-      vehicle: {
-        licensePlate: vehicle.licensePlate,
-        brand: vehicle.brand,
-        model: vehicle.vehicleModel,
-        owner: vehicle.owner
-      },
-      entries,
-      pagination: {
-        currentPage: pageNum,
-        totalPages: Math.ceil(total / limitNum),
-        totalItems: total,
-        hasNext: skip + limitNum < total,
-        hasPrev: pageNum > 1
-      }
-    });
-  } catch (error) {
-    console.error('Get history error:', error);
-    res.status(500).json({ error: 'Помилка отримання історії проїздів' });
-  }
-});
-
-// Отримання всіх записів проїздів з фільтрацією (для чергового частини)
+// Отримання всіх записів проїздів з фільтрацією (для чергового інституту)
 router.get('/', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
   try {
     const { 
@@ -317,12 +268,19 @@ router.get('/history/:licensePlate', authenticateToken, requireRole(['unit_offic
     .populate('processedBy', 'username fullName')
     .sort({ createdAt: -1 }); // Сортуємо за датою (найновіші спочатку)
 
-    // Форматуємо дані для фронтенду
-    const formattedEntries = entries.map(entry => ({
-      _id: entry._id,
-      timestamp: entry.createdAt,
-      action: entry.status === 'entered' ? 'entry' : 'exit',
-      officerName: (entry.processedBy as any)?.fullName || (entry.processedBy as any)?.username || 'Невідомий'
+    // Форматуємо дані у форматі EntryRecord для фронтенду
+    const formattedEntries = entries.map((entry: any) => ({
+      id: entry._id.toString(),
+      vehicle: entry.vehicle.toString(),
+      licensePlate: entry.licensePlate,
+      entryTime: entry.entryTime,
+      exitTime: entry.exitTime,
+      status: entry.status,
+      processedBy: {
+        username: (entry.processedBy as any)?.username || 'unknown',
+        fullName: (entry.processedBy as any)?.fullName || 'Невідомий'
+      },
+      createdAt: entry.createdAt
     }));
 
     res.json(formattedEntries);

@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiService } from '../services/api';
+import { EntryRecord } from '../types';
+import { formatDateTime } from '../utils/dateTime';
 import '../styles/VehicleHistory.scss';
-
-interface Entry {
-  _id: string;
-  timestamp: string;
-  action: 'entry' | 'exit';
-  officerName: string;
-}
 
 interface VehicleHistoryProps {
   plateNumber: string;
@@ -15,41 +10,45 @@ interface VehicleHistoryProps {
 }
 
 const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose }) => {
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<EntryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchHistory();
-  }, [plateNumber]);
+    const fetchHistory = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        const response = await apiService.getEntryHistory(plateNumber);
+        
+        if (response && response.data && Array.isArray(response.data)) {
+          setEntries(response.data);
+        } else {
+          setEntries([]);
+        }
+      } catch (err: any) {
+        console.error('Error fetching vehicle history:', err);
+        setError('Помилка завантаження історії');
+        setEntries([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchHistory = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/entries/history/${plateNumber}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setEntries(response.data);
-      setError('');
-    } catch (err: any) {
-      setError('Помилка завантаження історії');
-      console.error('Error fetching history:', err);
-    } finally {
+    if (plateNumber) {
+      fetchHistory();
+    } else {
       setLoading(false);
     }
+  }, [plateNumber]);
+
+  const getActionText = (status: string) => {
+    return status === 'entered' ? 'В\'їзд' : 'Виїзд';
   };
 
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('uk-UA');
-  };
-
-  const getActionText = (action: string) => {
-    return action === 'entry' ? 'В\'їзд' : 'Виїзд';
-  };
-
-  const getActionClass = (action: string) => {
-    return action === 'entry' ? 'entry' : 'exit';
+  const getActionClass = (status: string) => {
+    return status === 'entered' ? 'entry' : 'exit';
   };
 
   return (
@@ -65,7 +64,7 @@ const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose })
             <div className="loading">Завантаження...</div>
           ) : error ? (
             <div className="error">{error}</div>
-          ) : entries.length === 0 ? (
+          ) : !entries || entries.length === 0 ? (
             <div className="no-entries">
               <p>Історія руху для цього автомобіля відсутня</p>
             </div>
@@ -75,23 +74,29 @@ const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose })
                 <p>Всього записів: <strong>{entries.length}</strong></p>
               </div>
               <div className="entries-list">
-                {entries.map((entry) => (
-                  <div key={entry._id} className={`entry-item ${getActionClass(entry.action)}`}>
-                    <div className="entry-action">
-                      <span className={`action-badge ${getActionClass(entry.action)}`}>
-                        {getActionText(entry.action)}
-                      </span>
-                    </div>
-                    <div className="entry-details">
-                      <div className="entry-time">
-                        {formatDate(entry.timestamp)}
+                {entries && Array.isArray(entries) && entries.map((entry, index) => {
+                  if (!entry) {
+                    return null;
+                  }
+                  
+                  return (
+                    <div key={entry.id || `entry-${index}`} className={`entry-item ${getActionClass(entry.status)}`}>
+                      <div className="entry-action">
+                        <span className={`action-badge ${getActionClass(entry.status)}`}>
+                          {getActionText(entry.status)}
+                        </span>
                       </div>
-                      <div className="entry-officer">
-                        Черговий: {entry.officerName}
+                      <div className="entry-details">
+                        <div className="entry-time">
+                          {entry.createdAt ? formatDateTime(entry.createdAt) : 'Невідомий час'}
+                        </div>
+                        <div className="entry-officer">
+                          Черговий: {entry.processedBy?.fullName || 'Невідомий'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
