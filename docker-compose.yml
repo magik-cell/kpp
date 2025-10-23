@@ -1,6 +1,4 @@
 services:
-  # База даних MongoDB - використовуємо локальну MongoDB
-  # db: відключено - використовуємо host.docker.internal:27017
 
   # Серверна частина (API)
   server:
@@ -56,8 +54,3 @@ networks:
     driver: bridge
     name: kyrsova_network
 
-# Створюємо том для збереження даних бази
-volumes:
-  mongo_data:
-    driver: local
-    name: kyrsova_mongo_data

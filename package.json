@@ -2,13 +2,19 @@
   "name": "kpp-control-system",
   "version": "1.0.0",
   "description": "Система контролю транспортних засобів через КПП",
+  "main": "server/dist/index.js",
   "scripts": {
+    "start": "cd server && npm start",
     "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm start\"",
     "install-all": "cd server && npm install && cd ../client && npm install",
     "build": "cd server && npm run build && cd ../client && npm run build",
-    "init-db": "cd server && npm run init-db",
     "start-server": "cd server && npm run dev",
-    "start-client": "cd client && npm start"
+    "start-client": "cd client && npm start",
+    "postinstall": "npm run install-all && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
   "devDependencies": {
     "concurrently": "^7.6.0"

@@ -1,0 +1,62 @@
+# Ігноруємо файли розробки
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ігноруємо файли середовища
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ігноруємо тимчасові файли
+*.log
+logs
+*.pid
+*.seed
+*.pid.lock
+
+# Ігноруємо файли збірки
+dist
+build
+.next
+out
+
+# Ігноруємо файли редакторів
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Ігноруємо Git файли
+.git
+.gitignore
+README.md
+.github
+
+# Ігноруємо Docker файли
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Ігноруємо тестові файли
+coverage
+.nyc_output
+*.test.js
+*.spec.js
+
+# Ігноруємо OS файли
+.DS_Store
+Thumbs.db
+
+# Ігноруємо backup файли
+backup/
+mongodb-backup/
+*.backup
+
+# Ігноруємо документацію
+*.md
+docs/

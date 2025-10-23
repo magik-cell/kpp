@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
 
 import authRoutes from './routes/auth';
 import vehicleRoutes from './routes/vehicles';
@@ -18,6 +19,11 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kpp_co
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../public')));
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -77,10 +83,17 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Маршрут не знайдено' });
-});
+// Serve React app in production for any non-API routes
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+  });
+} else {
+  // 404 handler for development
+  app.use('*', (req, res) => {
+    res.status(404).json({ error: 'Маршрут не знайдено' });
+  });
+}
 
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI)
