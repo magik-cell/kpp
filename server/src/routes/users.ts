@@ -32,7 +32,7 @@ router.get('/', authenticateToken, requireRole(['admin']), async (req: AuthReque
     const total = await User.countDocuments(query);
 
     // Перетворюємо _id в id для клієнта
-    const formattedUsers = users.map(user => ({
+    const formattedUsers = users.map((user: any) => ({
       id: user._id.toString(),
       username: user.username,
       fullName: user.fullName,
@@ -86,7 +86,7 @@ router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequ
       password: hashedPassword,
       fullName,
       role,
-      createdBy: req.user!._id
+      createdBy: (req.user as any)!._id
     });
 
     await newUser.save();
@@ -176,7 +176,7 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req: Aut
     }
 
     // Перевіряємо, щоб адміністратор не видалив сам себе
-    if (req.user!._id.toString() === id) {
+    if ((req.user as any)!._id.toString() === id) {
       return res.status(400).json({ error: 'Ви не можете видалити свій власний аккаунт' });
     }
 

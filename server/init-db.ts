@@ -39,12 +39,12 @@ async function initializeDatabase() {
 
     const createdUsers = await User.insertMany(users);
     console.log('👥 Створено тестових користувачів:');
-    createdUsers.forEach(user => {
+    createdUsers.forEach((user: any) => {
       console.log(`   - ${user.username} (${user.role}) - ${user.fullName}`);
     });
 
     // Створення тестових автомобілів
-    const unitOfficer = createdUsers.find(u => u.role === 'unit_officer');
+    const unitOfficer = createdUsers.find((u: any) => u.role === 'unit_officer');
     
     if (unitOfficer) {
       // Автомобіль з постійним доступом

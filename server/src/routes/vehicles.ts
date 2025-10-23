@@ -39,22 +39,30 @@ router.get('/', authenticateToken, requireRole(['unit_officer', 'kpp_officer']),
       .skip(skip)
       .limit(limitNum);
 
+    console.log('Raw vehicles from DB:', vehicles[0]);
     const total = await Vehicle.countDocuments(query);
 
     // Перетворюємо _id в id для клієнта
-    const formattedVehicles = vehicles.map(vehicle => ({
-      id: vehicle._id.toString(),
-      licensePlate: vehicle.licensePlate,
-      brand: vehicle.brand,
-      model: vehicle.model,
-      owner: vehicle.owner,
-      accessType: vehicle.accessType,
-      validUntil: vehicle.validUntil,
-      isActive: vehicle.isActive,
-      createdBy: vehicle.createdBy,
-      createdAt: vehicle.createdAt,
-      updatedAt: vehicle.updatedAt
-    }));
+    const formattedVehicles = vehicles.map((vehicle: any) => {
+      console.log('Mapping vehicle:', {
+        vehicleModel: vehicle.vehicleModel,
+        model: vehicle.model,
+        allKeys: Object.keys(vehicle)
+      });
+      return {
+        id: vehicle._id.toString(),
+        licensePlate: vehicle.licensePlate,
+        brand: vehicle.brand,
+        model: vehicle.vehicleModel, // Виправлено: використовуємо vehicleModel з бази даних
+        owner: vehicle.owner,
+        accessType: vehicle.accessType,
+        validUntil: vehicle.validUntil,
+        isActive: vehicle.isActive,
+        createdBy: vehicle.createdBy,
+        createdAt: vehicle.createdAt,
+        updatedAt: vehicle.updatedAt
+      };
+    });
 
     res.json({
       vehicles: formattedVehicles,
@@ -185,7 +193,7 @@ router.post('/', authenticateToken, requireRole(['unit_officer']), async (req: A
       owner,
       accessType,
       validUntil: calculatedValidUntil,
-      createdBy: req.user!._id
+      createdBy: (req.user as any)!._id
     });
 
     await newVehicle.save();

@@ -87,8 +87,10 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Пошук користувача
-    const user = await User.findOne({ username: username.toLowerCase().trim() });
+    // Пошук користувача (регістр не важливий)
+    const user = await User.findOne({ 
+      username: { $regex: new RegExp(`^${username.trim()}$`, 'i') }
+    });
     if (!user) {
       return res.status(401).json({ 
         error: 'Неправильний логін. Перевірте правильність написання.' 

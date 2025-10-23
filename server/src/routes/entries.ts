@@ -56,7 +56,7 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
         entryTime: currentTime,
         exitTime: null,
         status: 'entered',
-        processedBy: req.user!._id
+        processedBy: (req.user as any)!._id
       });
 
       await newEntry.save();
@@ -269,7 +269,7 @@ router.get('/history/:licensePlate', authenticateToken, requireRole(['unit_offic
     .sort({ createdAt: -1 }); // Сортуємо за датою (найновіші спочатку)
 
     // Форматуємо дані у форматі EntryRecord для фронтенду
-    const formattedEntries = entries.map(entry => ({
+    const formattedEntries = entries.map((entry: any) => ({
       id: entry._id.toString(),
       vehicle: entry.vehicle.toString(),
       licensePlate: entry.licensePlate,

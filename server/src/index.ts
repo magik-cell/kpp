@@ -26,12 +26,46 @@ app.use('/api/entries', entryRoutes);
 app.use('/api/users', userRoutes);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'КПП Control Server is running',
-    timestamp: new Date().toISOString()
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // Test database connection
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = dbState === 1 ? 'Connected' : 'Disconnected';
+    
+    res.json({ 
+      status: 'OK', 
+      message: 'КПП Control Server is running',
+      database: dbStatus,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      message: 'Server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// API Health check
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = dbState === 1 ? 'Connected' : 'Disconnected';
+    
+    res.json({ 
+      status: 'OK', 
+      message: 'КПП Control API is running',
+      database: dbStatus,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      message: 'Database connection failed',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Error handling middleware
@@ -54,10 +88,11 @@ mongoose.connect(MONGODB_URI)
     console.log('✅ Підключено до MongoDB');
     app.listen(PORT, () => {
       console.log(`🚀 Server запущено на порту ${PORT}`);
-      console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`📊 Health check: http://localhost:${PORT}/health`);
+      console.log(`📊 API Health check: http://localhost:${PORT}/api/health`);
     });
   })
-  .catch((error) => {
+  .catch((error: any) => {
     console.error('❌ Помилка підключення до MongoDB:', error);
     process.exit(1);
   });
