@@ -87,6 +87,14 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Перевірка підключення до бази даних
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ 
+        error: 'База даних недоступна. Спробуйте пізніше.' 
+      });
+    }
+
     // Пошук користувача (регістр не важливий)
     const user = await User.findOne({ 
       username: { $regex: new RegExp(`^${username.trim()}$`, 'i') }
