@@ -83,6 +83,9 @@ app.use('*', (req, res) => {
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('✅ Підключено до MongoDB');
+    if (process.env.NODE_ENV === 'production' && /localhost|127\.0\.0\.1/.test(MONGODB_URI)) {
+      console.warn('⚠️ УВАГА: У production середовищі використовується локальний MongoDB URI. Рекомендовано задати MONGODB_URI для Atlas.');
+    }
     app.listen(PORT, () => {
       console.log(`🚀 Server запущено на порту ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
@@ -91,6 +94,10 @@ mongoose.connect(MONGODB_URI)
   })
   .catch((error) => {
     console.warn('⚠️  Попередження: Не вдалося підключитися до MongoDB:', error.message);
+    if (process.env.NODE_ENV === 'production') {
+      console.error('❌ Зупинка: У production запуск без підключення до БД заборонено. Перевірте MONGODB_URI на Render.');
+      process.exit(1);
+    }
     console.log('🔄 Запускаю сервер без бази даних (тестовий режим)');
     app.listen(PORT, () => {
       console.log(`🚀 Server запущено на порту ${PORT} (без БД)`);

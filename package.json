@@ -10,7 +10,8 @@
     "start-client": "cd client && npm start"
   },
   "devDependencies": {
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "mongoose": "^8.19.2"
   },
   "keywords": [
     "checkpoint",
