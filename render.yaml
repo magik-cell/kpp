@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: kpp-control-server
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: BCRYPT_ROUNDS
+        value: "10"
+    # NOTE: Set these in the Render Dashboard (Settings → Environment):
+    # - MONGODB_URI
+    # - JWT_SECRET
+
+  - type: static_site
+    name: kpp-control-client
+    rootDir: client
+    buildCommand: npm install && npm run build
+    publishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://REPLACE_WITH_SERVER_URL/api
