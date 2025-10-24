@@ -10,9 +10,11 @@ services:
     envVars:
       - key: BCRYPT_ROUNDS
         value: "10"
+      - key: NODE_ENV
+        value: "production"
     # NOTE: Set these in the Render Dashboard (Settings → Environment):
-    # - MONGODB_URI
-    # - JWT_SECRET
+    # - MONGODB_URI=mongodb+srv://sasha:Password123@cluster0.pzthh8n.mongodb.net/kpp_control?retryWrites=true&w=majority
+    # - JWT_SECRET=your_super_secret_jwt_key_here_2024
 
   - type: static_site
     name: kpp-control-client
@@ -21,4 +23,4 @@ services:
     publishPath: build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://REPLACE_WITH_SERVER_URL/api
+        value: https://my-kyrsova-2.onrender.com/api
