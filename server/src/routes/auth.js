@@ -1,7 +1,7 @@
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/User';
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ router.post('/register', async (req, res) => {
     // Валідація вхідних даних
     if (!username || !password || !role || !fullName) {
       return res.status(400).json({ 
-        error: 'Всі поля є обов\'язковими',
+        error: "Всі поля є обов'язковими",
         required: ['username', 'password', 'role', 'fullName']
       });
     }
@@ -47,16 +47,14 @@ router.post('/register', async (req, res) => {
         fullName: newUser.fullName
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
-    
-    if (error.name === 'ValidationError') {
+    if (error && error.name === 'ValidationError') {
       return res.status(400).json({ 
         error: 'Помилка валідації',
-        details: Object.values(error.errors).map((err: any) => err.message)
+        details: Object.values(error.errors || {}).map((err) => err.message)
       });
     }
-
     res.status(500).json({ error: 'Внутрішня помилка сервера' });
   }
 });
@@ -70,7 +68,7 @@ router.post('/login', async (req, res) => {
     // Валідація вхідних даних
     if (!username || !password) {
       return res.status(400).json({ 
-        error: 'Логін та пароль є обов\'язковими' 
+        error: "Логін та пароль є обов'язковими" 
       });
     }
 
@@ -136,26 +134,20 @@ router.post('/login', async (req, res) => {
         fullName: user.fullName
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login error:', error);
-    
-    // Обробка різних типів помилок
-    if (error.name === 'MongoError') {
+    if (error && error.name === 'MongoError') {
       return res.status(503).json({ 
         error: 'Проблеми з підключенням до бази даних. Спробуйте пізніше.' 
       });
     }
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        error: 'Некоректні дані для входу' 
-      });
+    if (error && error.name === 'ValidationError') {
+      return res.status(400).json({ error: 'Некоректні дані для входу' });
     }
-    
     res.status(500).json({ 
       error: 'Внутрішня помилка сервера. Зверніться до адміністратора.' 
     });
   }
 });
 
-export default router;
+module.exports = router;

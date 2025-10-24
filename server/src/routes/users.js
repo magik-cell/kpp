@@ -1,21 +1,19 @@
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import User from '../models/User';
-import { authenticateToken, requireRole, AuthRequest } from '../middleware/auth';
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
+const { authenticateToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Отримання всіх користувачів (тільки для адміністратора)
-router.get('/', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.get('/', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const { page = 1, limit = 10, search = '' } = req.query;
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    let query: any = {};
-
-    // Пошук за іменем користувача або повним іменем
+    const query = {};
     if (search) {
       query.$or = [
         { username: { $regex: search, $options: 'i' } },
@@ -24,15 +22,14 @@ router.get('/', authenticateToken, requireRole(['admin']), async (req: AuthReque
     }
 
     const users = await User.find(query)
-      .select('-password') // Виключаємо пароль з результату
+      .select('-password')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
 
     const total = await User.countDocuments(query);
 
-    // Перетворюємо _id в id для клієнта
-    const formattedUsers = users.map((user: any) => ({
+    const formattedUsers = users.map((user) => ({
       id: user._id.toString(),
       username: user.username,
       fullName: user.fullName,
@@ -58,40 +55,35 @@ router.get('/', authenticateToken, requireRole(['admin']), async (req: AuthReque
 });
 
 // Створення нового користувача (тільки для адміністратора)
-router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.post('/', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const { username, password, fullName, role } = req.body;
 
-    // Валідація вхідних даних
     if (!username || !password || !fullName || !role) {
-      return res.status(400).json({ error: 'Всі поля обов\'язкові' });
+      return res.status(400).json({ error: "Всі поля обов'язкові" });
     }
 
     if (!['admin', 'unit_officer', 'kpp_officer'].includes(role)) {
       return res.status(400).json({ error: 'Неправильна роль користувача' });
     }
 
-    // Перевірка на унікальність username
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ error: 'Користувач з таким іменем вже існує' });
     }
 
-    // Хешування паролю
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Створення користувача
     const newUser = new User({
       username,
       password: hashedPassword,
       fullName,
       role,
-      createdBy: (req.user as any)!._id
+      createdBy: req.user && req.user._id
     });
 
     await newUser.save();
 
-    // Повертаємо користувача без паролю
     const userResponse = {
       id: newUser._id.toString(),
       username: newUser.username,
@@ -101,10 +93,7 @@ router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequ
       updatedAt: newUser.updatedAt
     };
 
-    res.status(201).json({
-      message: 'Користувача успішно створено',
-      user: userResponse
-    });
+    res.status(201).json({ message: 'Користувача успішно створено', user: userResponse });
   } catch (error) {
     console.error('Помилка створення користувача:', error);
     res.status(500).json({ error: 'Помилка сервера' });
@@ -112,7 +101,7 @@ router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequ
 });
 
 // Редагування користувача (тільки для адміністратора)
-router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.put('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const { id } = req.params;
     const { username, fullName, role, password } = req.body;
@@ -122,7 +111,6 @@ router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRe
       return res.status(404).json({ error: 'Користувача не знайдено' });
     }
 
-    // Перевірка на унікальність username (якщо змінюється)
     if (username && username !== user.username) {
       const existingUser = await User.findOne({ username, _id: { $ne: id } });
       if (existingUser) {
@@ -130,14 +118,11 @@ router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRe
       }
     }
 
-    // Оновлюємо поля
     if (username) user.username = username;
     if (fullName) user.fullName = fullName;
     if (role && ['admin', 'unit_officer', 'kpp_officer'].includes(role)) {
       user.role = role;
     }
-
-    // Якщо вказано новий пароль
     if (password) {
       user.password = await bcrypt.hash(password, 10);
     }
@@ -145,7 +130,6 @@ router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRe
     user.updatedAt = new Date();
     await user.save();
 
-    // Повертаємо користувача без паролю
     const userResponse = {
       id: user._id.toString(),
       username: user.username,
@@ -155,10 +139,7 @@ router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRe
       updatedAt: user.updatedAt
     };
 
-    res.json({
-      message: 'Користувача успішно оновлено',
-      user: userResponse
-    });
+    res.json({ message: 'Користувача успішно оновлено', user: userResponse });
   } catch (error) {
     console.error('Помилка редагування користувача:', error);
     res.status(500).json({ error: 'Помилка сервера' });
@@ -166,17 +147,15 @@ router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRe
 });
 
 // Видалення користувача (тільки для адміністратора)
-router.delete('/:id', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Перевірка валідності ID
     if (!id || id === 'undefined') {
       return res.status(400).json({ error: 'Неправильний ID користувача' });
     }
 
-    // Перевіряємо, щоб адміністратор не видалив сам себе
-    if ((req.user as any)!._id.toString() === id) {
+    if (req.user && req.user._id && req.user._id.toString() === id) {
       return res.status(400).json({ error: 'Ви не можете видалити свій власний аккаунт' });
     }
 
@@ -186,7 +165,6 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req: Aut
     }
 
     await User.findByIdAndDelete(id);
-
     res.json({ message: 'Користювача успішно видалено' });
   } catch (error) {
     console.error('Помилка видалення користувача:', error);
@@ -194,4 +172,4 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req: Aut
   }
 });
 
-export default router;
+module.exports = router;

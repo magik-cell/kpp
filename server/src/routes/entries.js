@@ -1,22 +1,18 @@
-import express from 'express';
-import Vehicle from '../models/Vehicle';
-import Entry from '../models/Entry';
-import { authenticateToken, requireRole, AuthRequest } from '../middleware/auth';
+const express = require('express');
+const Vehicle = require('../models/Vehicle');
+const Entry = require('../models/Entry');
+const { authenticateToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Відмітка про вїзд/виїзд автомобіля (тільки для чергового КПП)
-router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_officer']), async (req: AuthRequest, res) => {
+// Відмітка про в'їзд/виїзд автомобіля (тільки для чергового КПП)
+router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_officer']), async (req, res) => {
   try {
     const { licensePlate } = req.params;
     const upperPlate = licensePlate.toUpperCase();
 
     // Знаходимо автомобіль
-    const vehicle = await Vehicle.findOne({ 
-      licensePlate: upperPlate, 
-      isActive: true 
-    });
-
+    const vehicle = await Vehicle.findOne({ licensePlate: upperPlate, isActive: true });
     if (!vehicle) {
       return res.status(404).json({ 
         error: 'Автомобіль не знайдено в базі даних',
@@ -41,14 +37,12 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
     }
 
     // Знаходимо останній запис проїзду
-    const lastEntry = await Entry.findOne({ 
-      vehicle: vehicle._id 
-    }).sort({ createdAt: -1 });
+    const lastEntry = await Entry.findOne({ vehicle: vehicle._id }).sort({ createdAt: -1 });
 
     const currentTime = new Date();
-    let newEntry: any;
+    let newEntry;
 
-    // Якщо немає записів або останній запис - виїзд, створюємо запис про вїзд
+    // Якщо немає записів або останній запис - виїзд, створюємо запис про в'їзд
     if (!lastEntry || lastEntry.status === 'exited') {
       newEntry = new Entry({
         vehicle: vehicle._id,
@@ -56,12 +50,12 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
         entryTime: currentTime,
         exitTime: null,
         status: 'entered',
-        processedBy: (req.user as any)!._id
+        processedBy: req.user && req.user._id
       });
 
       await newEntry.save();
       await newEntry.populate([
-        { path: 'vehicle', select: 'licensePlate brand model owner' },
+        { path: 'vehicle', select: 'licensePlate brand vehicleModel owner' },
         { path: 'processedBy', select: 'username fullName' }
       ]);
 
@@ -78,13 +72,13 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
       });
 
     } else if (lastEntry.status === 'entered') {
-      // Якщо останній запис - вїзд, оновлюємо його на виїзд
+      // Якщо останній запис - в'їзд, оновлюємо його на виїзд
       lastEntry.exitTime = currentTime;
       lastEntry.status = 'exited';
       await lastEntry.save();
 
       await lastEntry.populate([
-        { path: 'vehicle', select: 'licensePlate brand model owner' },
+        { path: 'vehicle', select: 'licensePlate brand vehicleModel owner' },
         { path: 'processedBy', select: 'username fullName' }
       ]);
 
@@ -113,48 +107,37 @@ router.post('/toggle/:licensePlate', authenticateToken, requireRole(['kpp_office
   }
 });
 
-
 // Отримання всіх записів проїздів з фільтрацією (для чергового інституту)
-router.get('/', authenticateToken, requireRole(['unit_officer']), async (req: AuthRequest, res) => {
+router.get('/', authenticateToken, requireRole(['unit_officer']), async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 20, 
-      status, 
-      dateFrom, 
-      dateTo, 
-      licensePlate 
-    } = req.query;
+    const { page = 1, limit = 20, status, dateFrom, dateTo, licensePlate } = req.query;
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    let query: any = {};
+    const query = {};
 
-    // Фільтр за статусом
-    if (status && ['entered', 'exited'].includes(status as string)) {
+    if (status && ['entered', 'exited'].includes(status)) {
       query.status = status;
     }
 
-    // Фільтр за датою
     if (dateFrom || dateTo) {
       query.createdAt = {};
-      if (dateFrom) query.createdAt.$gte = new Date(dateFrom as string);
+      if (dateFrom) query.createdAt.$gte = new Date(dateFrom);
       if (dateTo) {
-        const endDate = new Date(dateTo as string);
+        const endDate = new Date(dateTo);
         endDate.setHours(23, 59, 59, 999);
         query.createdAt.$lte = endDate;
       }
     }
 
-    // Фільтр за номером авто
     if (licensePlate) {
       query.licensePlate = { $regex: licensePlate, $options: 'i' };
     }
 
     const entries = await Entry.find(query)
-      .populate('vehicle', 'licensePlate brand model owner')
+      .populate('vehicle', 'licensePlate brand vehicleModel owner')
       .populate('processedBy', 'username fullName')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -171,12 +154,7 @@ router.get('/', authenticateToken, requireRole(['unit_officer']), async (req: Au
         hasNext: skip + limitNum < total,
         hasPrev: pageNum > 1
       },
-      filters: {
-        status: status || 'all',
-        dateFrom,
-        dateTo,
-        licensePlate
-      }
+      filters: { status: status || 'all', dateFrom, dateTo, licensePlate }
     });
   } catch (error) {
     console.error('Get entries error:', error);
@@ -185,59 +163,21 @@ router.get('/', authenticateToken, requireRole(['unit_officer']), async (req: Au
 });
 
 // Отримання статистики (кількість автомобілів на території зараз)
-router.get('/stats/current', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/stats/current', authenticateToken, async (req, res) => {
   try {
-    // Знайти всі автомобілі, які зараз на території (останній запис - вїзд)
-    const pipeline: any[] = [
-      {
-        $sort: { vehicle: 1, createdAt: -1 }
-      },
-      {
-        $group: {
-          _id: "$vehicle",
-          lastEntry: { $first: "$$ROOT" }
-        }
-      },
-      {
-        $match: {
-          "lastEntry.status": "entered"
-        }
-      },
-      {
-        $lookup: {
-          from: "vehicles",
-          localField: "_id",
-          foreignField: "_id",
-          as: "vehicleInfo"
-        }
-      },
-      {
-        $unwind: "$vehicleInfo"
-      },
-      {
-        $project: {
-          _id: "$lastEntry._id",
-          vehicle: "$vehicleInfo",
-          entryTime: "$lastEntry.entryTime",
-          processedBy: "$lastEntry.processedBy",
-          createdAt: "$lastEntry.createdAt"
-        }
-      }
+    const pipeline = [
+      { $sort: { vehicle: 1, createdAt: -1 } },
+      { $group: { _id: '$vehicle', lastEntry: { $first: '$$ROOT' } } },
+      { $match: { 'lastEntry.status': 'entered' } },
+      { $lookup: { from: 'vehicles', localField: '_id', foreignField: '_id', as: 'vehicleInfo' } },
+      { $unwind: '$vehicleInfo' },
+      { $project: { _id: '$lastEntry._id', vehicle: '$vehicleInfo', entryTime: '$lastEntry.entryTime', processedBy: '$lastEntry.processedBy', createdAt: '$lastEntry.createdAt' } }
     ];
 
     const currentVehicles = await Entry.aggregate(pipeline);
-    
-    // Populate processedBy field
-    await Entry.populate(currentVehicles, {
-      path: 'processedBy',
-      select: 'username fullName'
-    });
+    await Entry.populate(currentVehicles, { path: 'processedBy', select: 'username fullName' });
 
-    res.json({
-      message: 'Автомобілі зараз на території',
-      count: currentVehicles.length,
-      vehicles: currentVehicles
-    });
+    res.json({ message: 'Автомобілі зараз на території', count: currentVehicles.length, vehicles: currentVehicles });
   } catch (error) {
     console.error('Get current stats error:', error);
     res.status(500).json({ error: 'Помилка отримання статистики' });
@@ -245,31 +185,21 @@ router.get('/stats/current', authenticateToken, async (req: AuthRequest, res) =>
 });
 
 // Отримання історії в'їздів/виїздів для конкретного автомобіля
-router.get('/history/:licensePlate', authenticateToken, requireRole(['unit_officer', 'kpp_officer']), async (req: AuthRequest, res) => {
+router.get('/history/:licensePlate', authenticateToken, requireRole(['unit_officer', 'kpp_officer']), async (req, res) => {
   try {
     const { licensePlate } = req.params;
     const upperPlate = licensePlate.toUpperCase();
 
-    // Знаходимо автомобіль
-    const vehicle = await Vehicle.findOne({ 
-      licensePlate: upperPlate 
-    });
-
+    const vehicle = await Vehicle.findOne({ licensePlate: upperPlate });
     if (!vehicle) {
-      return res.status(404).json({ 
-        error: 'Автомобіль не знайдено в базі даних' 
-      });
+      return res.status(404).json({ error: 'Автомобіль не знайдено в базі даних' });
     }
 
-    // Отримуємо всю історію в'їздів/виїздів для цього автомобіля
-    const entries = await Entry.find({ 
-      vehicle: vehicle._id 
-    })
-    .populate('processedBy', 'username fullName')
-    .sort({ createdAt: -1 }); // Сортуємо за датою (найновіші спочатку)
+    const entries = await Entry.find({ vehicle: vehicle._id })
+      .populate('processedBy', 'username fullName')
+      .sort({ createdAt: -1 });
 
-    // Форматуємо дані у форматі EntryRecord для фронтенду
-    const formattedEntries = entries.map((entry: any) => ({
+    const formattedEntries = entries.map((entry) => ({
       id: entry._id.toString(),
       vehicle: entry.vehicle.toString(),
       licensePlate: entry.licensePlate,
@@ -277,8 +207,8 @@ router.get('/history/:licensePlate', authenticateToken, requireRole(['unit_offic
       exitTime: entry.exitTime,
       status: entry.status,
       processedBy: {
-        username: (entry.processedBy as any)?.username || 'unknown',
-        fullName: (entry.processedBy as any)?.fullName || 'Невідомий'
+        username: entry.processedBy && entry.processedBy.username ? entry.processedBy.username : 'unknown',
+        fullName: entry.processedBy && entry.processedBy.fullName ? entry.processedBy.fullName : 'Невідомий'
       },
       createdAt: entry.createdAt
     }));
@@ -290,4 +220,4 @@ router.get('/history/:licensePlate', authenticateToken, requireRole(['unit_offic
   }
 });
 
-export default router;
+module.exports = router;

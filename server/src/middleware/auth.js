@@ -1,17 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/User';
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-export interface AuthRequest extends Request {
-  user?: IUser;
-  params: any;
-  query: any;
-  body: any;
-  headers: any;
-}
-
-// Middleware для перевірки JWT токену
-export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
+// req.user will be set if authenticated
+// authenticateToken middleware
+const authenticateToken = async (req, res, next) => {
   try {
     console.log('🔑 Auth middleware called for:', req.method, req.url);
     const authHeader = req.headers['authorization'];
@@ -23,7 +15,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       return res.status(401).json({ error: 'Токен доступу відсутній' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
     console.log('✅ Token decoded, userId:', decoded.userId);
     const user = await User.findById(decoded.userId);
 
@@ -44,9 +36,9 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 };
 
-// Middleware для перевірки ролі
-export const requireRole = (allowedRoles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+// requireRole middleware
+const requireRole = (allowedRoles) => {
+  return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Користувач не автентифікований' });
     }
@@ -62,3 +54,5 @@ export const requireRole = (allowedRoles: string[]) => {
     next();
   };
 };
+
+module.exports = { authenticateToken, requireRole };

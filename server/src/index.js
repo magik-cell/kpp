@@ -1,12 +1,12 @@
-import express from 'express';
-import cors from 'cors';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
-import authRoutes from './routes/auth';
-import vehicleRoutes from './routes/vehicles';
-import entryRoutes from './routes/entries';
-import userRoutes from './routes/users';
+const authRoutes = require('./routes/auth');
+const vehicleRoutes = require('./routes/vehicles');
+const entryRoutes = require('./routes/entries');
+const userRoutes = require('./routes/users');
 
 dotenv.config();
 
@@ -28,10 +28,8 @@ app.use('/api/users', userRoutes);
 // Health check endpoint
 app.get('/health', async (req, res) => {
   try {
-    // Test database connection
     const dbState = mongoose.connection.readyState;
     const dbStatus = dbState === 1 ? 'Connected' : 'Disconnected';
-    
     res.json({ 
       status: 'OK', 
       message: 'КПП Control Server is running',
@@ -52,7 +50,6 @@ app.get('/api/health', async (req, res) => {
   try {
     const dbState = mongoose.connection.readyState;
     const dbStatus = dbState === 1 ? 'Connected' : 'Disconnected';
-    
     res.json({ 
       status: 'OK', 
       message: 'КПП Control API is running',
@@ -69,7 +66,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 
     error: 'Щось пішло не так!',
@@ -92,11 +89,9 @@ mongoose.connect(MONGODB_URI)
       console.log(`📊 API Health check: http://localhost:${PORT}/api/health`);
     });
   })
-  .catch((error: any) => {
+  .catch((error) => {
     console.warn('⚠️  Попередження: Не вдалося підключитися до MongoDB:', error.message);
     console.log('🔄 Запускаю сервер без бази даних (тестовий режим)');
-    
-    // Запускаємо сервер навіть без MongoDB для тестування
     app.listen(PORT, () => {
       console.log(`🚀 Server запущено на порту ${PORT} (без БД)`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
@@ -105,4 +100,4 @@ mongoose.connect(MONGODB_URI)
     });
   });
 
-export default app;
+module.exports = app;
