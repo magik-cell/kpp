@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { User, VehicleCheckResponse } from '../types';
 import apiService from '../services/api';
 import { formatDateTime } from '../utils/dateTime';
 
-// Функція валідації українських номерів автомобілів
-const validateUkrainianLicensePlate = (licensePlate: string): boolean => {
+const validateUkrainianLicensePlate = (licensePlate) => {
   const ukrainianPlateRegex = /^[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{1,2}[0-9]{3,4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{0,2}$|^[0-9]{4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{2}$/;
   return ukrainianPlateRegex.test(licensePlate.toUpperCase());
 };
 
-interface KppOfficerDashboardProps {
-  user: User;
-}
-
-const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
+const KppOfficerDashboard = ({ user }) => {
   const [licensePlate, setLicensePlate] = useState('');
-  const [vehicleInfo, setVehicleInfo] = useState<VehicleCheckResponse | null>(null);
+  const [vehicleInfo, setVehicleInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -34,11 +28,10 @@ const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     if (!licensePlate.trim()) return;
 
-    // Валідація номера автомобіля
     if (!validateUkrainianLicensePlate(licensePlate.trim())) {
       setError('Неправильний формат номера автомобіля. Використовуйте українські літери та цифри (наприклад: АА1234ВВ)');
       return;
@@ -52,7 +45,7 @@ const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
     try {
       const response = await apiService.checkVehicle(licensePlate.trim());
       setVehicleInfo(response);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.error || 'Помилка перевірки автомобіля');
     } finally {
       setIsLoading(false);
@@ -69,14 +62,10 @@ const KppOfficerDashboard: React.FC<KppOfficerDashboardProps> = ({ user }) => {
     try {
       const response = await apiService.toggleEntry(vehicleInfo.vehicle.licensePlate);
       setSuccess(response.message);
-      
-      // Оновлюємо інформацію про автомобіль
       const updatedInfo = await apiService.checkVehicle(vehicleInfo.vehicle.licensePlate);
       setVehicleInfo(updatedInfo);
-      
-      // Оновлюємо лічильник
       loadCurrentVehiclesCount();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.error || 'Помилка обробки проїзду');
     } finally {
       setIsLoading(false);

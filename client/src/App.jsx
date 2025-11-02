@@ -5,15 +5,13 @@ import KppOfficerDashboard from './components/KppOfficerDashboard';
 import UnitOfficerDashboard from './components/UnitOfficerDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import Header from './components/Header';
-import { User } from './types';
 import './styles/App.scss';
 
-const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+const App = () => {
+  const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Перевіряємо чи є збережений користувач
     const savedUser = localStorage.getItem('currentUser');
     const savedToken = localStorage.getItem('authToken');
     
@@ -31,7 +29,7 @@ const App: React.FC = () => {
     setIsLoading(false);
   }, []);
 
-  const handleLogin = (user: User, token: string) => {
+  const handleLogin = (user, token) => {
     setCurrentUser(user);
     localStorage.setItem('currentUser', JSON.stringify(user));
     localStorage.setItem('authToken', token);

@@ -1,27 +1,19 @@
 import React, { useState } from 'react';
-import { User } from '../types';
 import apiService from '../services/api';
 
-interface LoginPageProps {
-  onLogin: (user: User, token: string) => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+const LoginPage = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({ username: false, password: false });
 
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setFieldErrors({ username: false, password: false });
     setIsLoading(true);
 
-    // Клієнтська валідація
     const newFieldErrors = { username: false, password: false };
     
     if (!username.trim()) {
@@ -62,7 +54,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         password: password 
       });
       onLogin(response.user, response.token);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Login failed:', err);
       
       let errorMessage = 'Помилка входу в систему. Спробуйте ще раз.';
@@ -107,8 +99,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
           )}
 
-
-
           <div className="form-group">
             <label htmlFor="username">Логін</label>
             <input
@@ -120,10 +110,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 if (fieldErrors.username) {
                   setFieldErrors(prev => ({ ...prev, username: false }));
                 }
-                // Тимчасово відключаємо автоочищення для тестування
-                // if (error) {
-                //   clearErrorWithDelay();
-                // }
               }}
               required
               disabled={isLoading}
@@ -143,10 +129,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 if (fieldErrors.password) {
                   setFieldErrors(prev => ({ ...prev, password: false }));
                 }
-                // Тимчасово відключаємо автоочищення для тестування
-                // if (error) {
-                //   clearErrorWithDelay();
-                // }
               }}
               required
               disabled={isLoading}

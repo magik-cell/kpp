@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
-import { EntryRecord } from '../types';
 import { formatDateTime } from '../utils/dateTime';
 import '../styles/VehicleHistory.scss';
 
-interface VehicleHistoryProps {
-  plateNumber: string;
-  onClose: () => void;
-}
-
-const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose }) => {
-  const [entries, setEntries] = useState<EntryRecord[]>([]);
+const VehicleHistory = ({ plateNumber, onClose }) => {
+  const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -27,7 +21,7 @@ const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose })
         } else {
           setEntries([]);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching vehicle history:', err);
         setError('Помилка завантаження історії');
         setEntries([]);
@@ -43,11 +37,11 @@ const VehicleHistory: React.FC<VehicleHistoryProps> = ({ plateNumber, onClose })
     }
   }, [plateNumber]);
 
-  const getActionText = (status: string) => {
+  const getActionText = (status) => {
     return status === 'entered' ? 'В\'їзд' : 'Виїзд';
   };
 
-  const getActionClass = (status: string) => {
+  const getActionClass = (status) => {
     return status === 'entered' ? 'entry' : 'exit';
   };
 

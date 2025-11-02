@@ -1,13 +1,7 @@
 import React from 'react';
-import { User } from '../types';
 
-interface HeaderProps {
-  user: User;
-  onLogout: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
-  const getRoleName = (role: string) => {
+const Header = ({ user, onLogout }) => {
+  const getRoleName = (role) => {
     switch (role) {
       case 'kpp_officer':
         return 'Черговий КПП';

@@ -1,33 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, UserCreateRequest, UserUpdateRequest } from '../types';
 import apiService from '../services/api';
 import '../styles/AdminDashboard.scss';
 
-interface AdminDashboardProps {
-  user: User;
-}
-
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
-  const [users, setUsers] = useState<User[]>([]);
+const AdminDashboard = ({ user }) => {
+  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Стан для модального вікна
   const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [editingUser, setEditingUser] = useState(null);
+  const [modalMode, setModalMode] = useState('add');
   
-  // Стан форми
-  const [formData, setFormData] = useState<UserCreateRequest>({
+  const [formData, setFormData] = useState({
     username: '',
     password: '',
     fullName: '',
     role: 'unit_officer'
   });
 
-  // Пагінація
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -41,7 +33,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       });
       setUsers(response.data);
       setTotalPages(response.pagination.totalPages);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Load users error:', err);
       let errorMessage = 'Помилка завантаження користувачів';
       
@@ -63,7 +55,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     loadUsers();
   }, [loadUsers]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
     loadUsers();
@@ -81,7 +73,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     setShowModal(true);
   };
 
-  const openEditModal = (userToEdit: User) => {
+  const openEditModal = (userToEdit) => {
     setModalMode('edit');
     setEditingUser(userToEdit);
     setFormData({
@@ -100,7 +92,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     setSuccess('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -111,7 +103,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         await apiService.createUser(formData);
         setSuccess('Користувача успішно створено');
       } else if (editingUser) {
-        const updateData: UserUpdateRequest = {
+        const updateData = {
           username: formData.username,
           fullName: formData.fullName,
           role: formData.role
@@ -125,7 +117,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       
       loadUsers();
       setTimeout(() => closeModal(), 1500);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save user error:', err);
       let errorMessage = 'Помилка збереження користувача';
       
@@ -143,7 +135,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     }
   };
 
-  const handleDelete = async (userToDelete: User) => {
+  const handleDelete = async (userToDelete) => {
     if (!window.confirm(`Ви впевнені, що хочете видалити користувача "${userToDelete.fullName}"?`)) {
       return;
     }
@@ -156,7 +148,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       setSuccess('Користувача успішно видалено');
       loadUsers();
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Delete user error:', err);
       let errorMessage = 'Помилка видалення користувача';
       
@@ -175,7 +167,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     }
   };
 
-  const getRoleDisplayName = (role: string) => {
+  const getRoleDisplayName = (role) => {
     switch (role) {
       case 'admin': return 'Адміністратор';
       case 'unit_officer': return 'Черговий інституту';
@@ -279,7 +271,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         )}
       </div>
 
-      {/* Пагінація */}
       {totalPages > 1 && (
         <div className="pagination">
           <button 
@@ -304,7 +295,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         </div>
       )}
 
-      {/* Модальне вікно */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -357,7 +347,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 <select
                   id="role"
                   value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value as any})}
+                  onChange={(e) => setFormData({...formData, role: e.target.value})}
                   required
                   disabled={isLoading}
                 >

@@ -1,33 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, Vehicle, VehicleCreateRequest } from '../types';
 import apiService from '../services/api';
 import VehicleHistory from './VehicleHistory';
 import { formatDate } from '../utils/dateTime';
 
-// Функція валідації українських номерів автомобілів
-const validateUkrainianLicensePlate = (licensePlate: string): boolean => {
+const validateUkrainianLicensePlate = (licensePlate) => {
   const ukrainianPlateRegex = /^[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{1,2}[0-9]{3,4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{0,2}$|^[0-9]{4}[АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ]{2}$/;
   return ukrainianPlateRegex.test(licensePlate.toUpperCase());
 };
 
-interface UnitOfficerDashboardProps {
-  user: User;
-}
-
-const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+const UnitOfficerDashboard = ({ user }) => {
+  const [vehicles, setVehicles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Стан для модального вікна
   const [showModal, setShowModal] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [editingVehicle, setEditingVehicle] = useState(null);
+  const [modalMode, setModalMode] = useState('add');
   
-  // Стан форми
-  const [formData, setFormData] = useState<VehicleCreateRequest>({
+  const [formData, setFormData] = useState({
     licensePlate: '',
     brand: '',
     model: '',
@@ -36,11 +28,9 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
     validUntil: ''
   });
 
-  // Пагінація
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Стан для історії
   const [showHistory, setShowHistory] = useState(false);
   const [selectedVehiclePlate, setSelectedVehiclePlate] = useState('');
 
@@ -54,7 +44,7 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
       });
       setVehicles(response.data);
       setTotalPages(response.pagination.totalPages);
-    } catch (err: any) {
+    } catch (err) {
       setError('Помилка завантаження списку автомобілів');
     } finally {
       setIsLoading(false);
@@ -65,7 +55,7 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
     loadVehicles();
   }, [loadVehicles]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
     loadVehicles();
@@ -85,7 +75,7 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
     setShowModal(true);
   };
 
-  const openEditModal = (vehicle: Vehicle) => {
+  const openEditModal = (vehicle) => {
     setModalMode('edit');
     setEditingVehicle(vehicle);
     setFormData({
@@ -106,20 +96,19 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
     setSuccess('');
   };
 
-  const handleFormChange = (field: keyof VehicleCreateRequest, value: string) => {
+  const handleFormChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setSuccess('');
 
-    // Валідація номера автомобіля
     if (!validateUkrainianLicensePlate(formData.licensePlate)) {
       setError('Неправильний формат номера автомобіля. Використовуйте українські літери та цифри (наприклад: АА1234ВВ)');
       setIsLoading(false);
@@ -128,8 +117,6 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
 
     try {
       const submitData = { ...formData };
-      
-      // Додаємо validUntil тільки якщо потрібно
       if (formData.accessType === 'temporary_custom' && formData.validUntil) {
         submitData.validUntil = formData.validUntil;
       } else if (formData.accessType === 'permanent') {
@@ -148,14 +135,14 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
       setTimeout(() => {
         closeModal();
       }, 1500);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.error || 'Помилка збереження');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = async (vehicle: Vehicle) => {
+  const handleDelete = async (vehicle) => {
     if (!window.confirm(`Ви впевнені, що хочете видалити автомобіль ${vehicle.licensePlate}?`)) {
       return;
     }
@@ -164,15 +151,14 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
       await apiService.deleteVehicle(vehicle.id);
       setSuccess('Автомобіль успішно видалено');
       loadVehicles();
-      
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.error || 'Помилка видалення');
       setTimeout(() => setError(''), 3000);
     }
   };
 
-  const handleShowHistory = (licensePlate: string) => {
+  const handleShowHistory = (licensePlate) => {
     setSelectedVehiclePlate(licensePlate);
     setShowHistory(true);
   };
@@ -182,7 +168,7 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
     setSelectedVehiclePlate('');
   };
 
-  const getAccessTypeText = (type: string) => {
+  const getAccessTypeText = (type) => {
     switch (type) {
       case 'permanent': return 'Постійний';
       case 'temporary_24h': return '24 години';
@@ -200,7 +186,6 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
         </button>
       </div>
 
-      {/* Пошук */}
       <div className="search-section">
         <form onSubmit={handleSearch} className="search-form">
           <input
@@ -216,7 +201,6 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
         </form>
       </div>
 
-      {/* Повідомлення */}
       {error && (
         <div className="message error-message">
           {error}
@@ -229,7 +213,6 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
         </div>
       )}
 
-      {/* Таблиця автомобілів */}
       <div className="vehicles-table-container">
         {isLoading ? (
           <div className="loading">Завантаження...</div>
@@ -302,7 +285,6 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
         )}
       </div>
 
-      {/* Пагінація */}
       {totalPages > 1 && (
         <div className="pagination">
           <button 
@@ -327,7 +309,6 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
         </div>
       )}
 
-      {/* Модальне вікно */}
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -456,7 +437,6 @@ const UnitOfficerDashboard: React.FC<UnitOfficerDashboardProps> = ({ user }) => 
         </div>
       )}
 
-      {/* Модальне вікно історії */}
       {showHistory && (
         <VehicleHistory 
           plateNumber={selectedVehiclePlate}
