@@ -1,34 +1,34 @@
-{
-  "name": "kpp-control-server",
-  "version": "1.0.0",
-  "description": "Серверна частина для системи контролю транспортних засобів через КПП",
-  "main": "src/index.js",
-  "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "build": "echo Skipping build (JavaScript server)",
-    "clean": "rimraf dist",
-    "init-db": "node init-db.js"
-  },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.0.3"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10",
-    "rimraf": "^4.4.1"
-  },
-  "keywords": [
-    "checkpoint",
-    "vehicle-control",
-    "express",
-    "mongodb",
-    "typescript"
-  ],
-  "author": "Student",
-  "license": "ISC"
-}
+  {
+    "name": "kpp-control-server",
+    "version": "1.0.0",
+    "description": "Серверна частина для системи контролю транспортних засобів через КПП",
+    "main": "src/index.js",
+    "scripts": {
+      "start": "node src/index.js",
+      "dev": "nodemon src/index.js",
+      "build": "echo Skipping build (JavaScript server)",
+      "clean": "rimraf dist",
+      "init-db": "node init-db.js"
+    },
+    "dependencies": {
+      "bcryptjs": "^2.4.3",
+      "cors": "^2.8.5",
+      "dotenv": "^16.0.3",
+      "express": "^4.18.2",
+      "jsonwebtoken": "^9.0.0",
+      "mongoose": "^7.0.3"
+    },
+    "devDependencies": {
+      "nodemon": "^3.1.10",
+      "rimraf": "^4.4.1"
+    },
+    "keywords": [
+      "checkpoint",
+      "vehicle-control",
+      "express",
+      "mongodb",
+      "typescript"
+    ],
+    "author": "Student",
+    "license": "ISC"
+  }
